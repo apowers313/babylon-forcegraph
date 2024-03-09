@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 
 interface GraphOpts {
     canvasElementId?: string;
@@ -21,7 +21,7 @@ export class Graph {
             }
             this.canvas = c;
         } else {
-            this.canvas = opts.canvasElement;
+            this.canvas = opts.canvasElement as HTMLCanvasElement;
         }
     }
 
@@ -43,11 +43,7 @@ export class Graph {
             ],
             updatable: true,
         };
-        let ln = MeshBuilder.CreateLines("lines", options);
-        // ln.x1 = 0;
-        // ln.y1 = -2;
-        // ln.x2 = 0;
-        // ln.y2 = 2;
+        MeshBuilder.CreateLines("lines", options);
 
         const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new Vector3(0, 0, 0));
         camera.attachControl(this.canvas, true);
