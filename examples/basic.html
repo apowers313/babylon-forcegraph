@@ -35,7 +35,9 @@
         g.addNode(2);
         g.addNode(3);
         g.addEdge(0, 1);
-        g.run();
+        g.init().then(() => {
+            console.log("init complete")
+        })
     </script>
 </body>
 

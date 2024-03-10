@@ -44,22 +44,7 @@ export class Graph {
         this.ngraphLayout = ngraphCreateLayout(this.ngraph, { dimensions: 3 })
     }
 
-    async run() {
-        const b1 = MeshBuilder.CreateBox("box", {});
-        b1.position.x += 2;
-
-        const b2 = MeshBuilder.CreateBox("box", {});
-        b2.position.x -= 2;
-
-        const options = {
-            points: [
-                new Vector3(-2, 0, 0),
-                new Vector3(2, 0, 0),
-            ],
-            updatable: true,
-        };
-        MeshBuilder.CreateLines("lines", options);
-
+    async init() {
         // Register a render loop to repeatedly render the scene
         this.engine.runRenderLoop(() => {
             this.update();
