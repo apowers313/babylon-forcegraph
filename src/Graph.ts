@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, LinesMesh, MeshBuilder, Camera } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, LinesMesh, MeshBuilder, Camera, SixDofDragBehavior } from "@babylonjs/core";
 // const createGraph = require('ngraph.graph');
 import createGraph, { Graph as NGraph, Node as NGraphNode, Link as NGraphLink } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
@@ -61,9 +61,9 @@ export class Graph {
 
         // WebXR setup
         if (navigator.xr) {
-            // const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
+            const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
             await this.scene.createDefaultXRExperienceAsync({
-                // floorMeshes: [ground]
+                floorMeshes: [ground]
             });
         }
 
@@ -96,6 +96,8 @@ export class Node {
     metadata: object;
     ngraphNode: NGraphNode;
     mesh: Mesh;
+    meshDragBehavior: SixDofDragBehavior;
+    dragging = false;
 
     constructor(graph: Graph, nodeId: NodeIdType, metadata: object = {}) {
         this.parentGraph = graph;
@@ -110,14 +112,37 @@ export class Node {
         this.mesh = MeshBuilder.CreateBox("box", {});
         this.mesh.metadata = {};
         this.mesh.metadata.parentNode = this;
+
+        // drag behavior
+        this.meshDragBehavior = new SixDofDragBehavior();
+        this.mesh.addBehavior(this.meshDragBehavior);
+        this.meshDragBehavior.onDragStartObservable.add(() => {
+            this.dragging = true;
+        });
+        this.meshDragBehavior.onDragEndObservable.add(() => {
+            this.dragging = false;
+        });
+        // onDragObservable.add
+        this.meshDragBehavior.onPositionChangedObservable.add((event) => {
+            let pos = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
+            pos.x = event.position.x;
+            pos.y = event.position.y;
+            if (pos.z) {
+                pos.z = event.position.z;
+            }
+        });
     }
 
     update(): void {
-        let n = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
-        this.mesh.position.x = n.x;
-        this.mesh.position.y = n.y;
-        if (n.z) {
-            this.mesh.position.z = n.z;
+        if (this.dragging) {
+            return
+        }
+
+        let pos = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
+        this.mesh.position.x = pos.x;
+        this.mesh.position.y = pos.y;
+        if (pos.z) {
+            this.mesh.position.z = pos.z;
         }
     }
 }
