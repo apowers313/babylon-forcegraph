@@ -4,11 +4,11 @@ import createGraph, { Graph as NGraph, Node as NGraphNode, Link as NGraphLink } 
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
 
 interface GraphOpts {
-    canvasElementId?: string;
-    canvasElement?: HTMLCanvasElement;
+    element: string | HTMLElement;
 }
 
 export class Graph {
+    element: HTMLElement;
     canvas: HTMLCanvasElement;
     engine: Engine;
     scene: Scene;
@@ -16,21 +16,29 @@ export class Graph {
     ngraph: NGraph;
     ngraphLayout: NGraphLayout<NGraph>;
 
-    constructor(opts: GraphOpts = {}) {
-        // get a canvas element for rendering
-        if (!opts.canvasElement && !opts.canvasElementId) {
-            throw new TypeError("Graph constructor requires either `canvasElement` or `canvasElementId`");
-        }
-
-        if (opts.canvasElementId) {
-            let c = document.getElementById(opts.canvasElementId);
-            if (!(c instanceof HTMLCanvasElement)) {
-                throw new TypeError(`Specified DOM element '${opts.canvasElementId}' is not a HTMLCanvasElement`);
+    constructor(opts: GraphOpts) {
+        // get the element that we are going to use for placing our canvas
+        if (typeof (opts.element) == "string") {
+            let e = document.getElementById(opts.element);
+            if (!e) {
+                throw new Error(`getElementById() could not find element '${opts.element}'`);
             }
-            this.canvas = c;
+            this.element = e;
+        } else if (opts.element instanceof HTMLElement) {
+            this.element = opts.element;
         } else {
-            this.canvas = opts.canvasElement as HTMLCanvasElement;
+            throw new TypeError("Graph constructor requires 'element' argument that is either a string specifying the ID of the HTML element or an HTMLElement");
         }
+        this.element.innerHTML = "";
+
+        // get a canvas element for rendering
+        this.canvas = document.createElement("canvas");
+        this.canvas.setAttribute("id", "babylonForceGraphRenderCanvas");
+        this.canvas.setAttribute("touch-action", "none");
+        this.canvas.style.width = "100%";
+        this.canvas.style.height = "100%";
+        this.canvas.style.touchAction = "none";
+        this.element.appendChild(this.canvas);
 
         // setup babylonjs
         this.engine = new Engine(this.canvas, true); // Generate the BABYLON 3D engine
@@ -50,6 +58,14 @@ export class Graph {
             this.update();
             this.scene.render();
         });
+
+        // WebXR setup
+        if (navigator.xr) {
+            // const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
+            await this.scene.createDefaultXRExperienceAsync({
+                // floorMeshes: [ground]
+            });
+        }
 
         // Watch for browser/canvas resize events
         window.addEventListener("resize", () => {
