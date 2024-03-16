@@ -1,7 +1,8 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, LinesMesh, MeshBuilder, Camera, SixDofDragBehavior } from "@babylonjs/core";
+import { Engine, Scene, Color3, ArcRotateCamera, Vector3, HemisphericLight, Mesh, StandardMaterial, LinesMesh, MeshBuilder, Camera, SixDofDragBehavior } from "@babylonjs/core";
 // const createGraph = require('ngraph.graph');
 import createGraph, { Graph as NGraph, Node as NGraphNode, Link as NGraphLink } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
+import { colorNameToHex } from "./util"
 
 interface GraphOpts {
     element: string | HTMLElement;
@@ -90,6 +91,58 @@ export class Graph {
 
 type NodeIdType = string | number;
 
+let defaultNodeMeshOpts = {
+    color: "yellow",
+    shape: "capsule", // TODO: Type with enumerated options?
+};
+
+function defaultNodeMeshFactory(n: Node, g: Graph, o: typeof defaultNodeMeshOpts): Mesh {
+    let mesh: Mesh
+
+    // create mesh shape
+    switch (o.shape) {
+        case "box":
+            mesh = MeshBuilder.CreateBox("box", {});
+            break;
+        case "sphere":
+            mesh = MeshBuilder.CreateSphere("sphere", {});
+            break;
+        case "cylinder":
+            mesh = MeshBuilder.CreateCylinder("cylinder", {});
+            break;
+        case "cone":
+            mesh = MeshBuilder.CreateCylinder("cylinder", { diameterTop: 0 });
+            break;
+        case "capsule":
+            mesh = MeshBuilder.CreateCapsule("capsule", {});
+            break;
+        case "torus":
+            mesh = MeshBuilder.CreateTorus("torus", {});
+            break;
+        case "torus-knot":
+            mesh = MeshBuilder.CreateTorusKnot("tk", { tube: 0.1, radialSegments: 128 });
+            break;
+        // case "text":
+        //     var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
+        //     mesh = MeshBuilder.CreateText("text", n.id, fontData, {
+        //         size: 16,
+        //         resolution: 64,
+        //         depth: 10
+        //     });
+        default:
+            throw new TypeError(`unknown shape: ${o.shape}`);
+    }
+
+    // create mesh texture
+    let mat = new StandardMaterial('defaultMaterial');
+    mat.diffuseColor = Color3.FromHexString(colorNameToHex(o.color));
+    mesh.material = mat;
+    return mesh;
+}
+
+export type NodeMeshFactory = typeof defaultNodeMeshFactory;
+let globalMeshFactory: NodeMeshFactory = defaultNodeMeshFactory;
+
 export class Node {
     parentGraph: Graph;
     id: NodeIdType;
@@ -109,7 +162,7 @@ export class Node {
         this.ngraphNode.data.parentNode = this;
 
         // create mesh
-        this.mesh = MeshBuilder.CreateBox("box", {});
+        this.mesh = globalMeshFactory(this, this.parentGraph, defaultNodeMeshOpts);
         this.mesh.metadata = {};
         this.mesh.metadata.parentNode = this;
 
@@ -192,5 +245,13 @@ export class Edge {
         // already exists)
         this.mesh = MeshBuilder.CreateLines("lines", options);
         return this.mesh;
+    }
+
+    static get meshFactory(): NodeMeshFactory {
+        return globalMeshFactory;
+    }
+
+    static set meshFactory(factory: NodeMeshFactory) {
+        globalMeshFactory = factory;
     }
 }
