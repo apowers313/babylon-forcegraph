@@ -77,20 +77,28 @@ export class Node {
     mesh: Mesh;
     meshDragBehavior: SixDofDragBehavior;
     dragging = false;
-    nodeMeshOpts: NodeMeshOpts;
+    nodeMeshOpts: Required<NodeMeshOpts>;
 
     constructor(graph: Graph, nodeId: NodeIdType, opts: NodeOpts = {}) {
         this.parentGraph = graph;
         this.id = nodeId;
         this.metadata = opts.metadata ?? {};
-        this.nodeMeshOpts = opts.nodeMeshOpts ?? defaultNodeMeshOpts;
+
+        // copy nodeMeshOpts
+        let tmp = {};
+        for (let k of Object.keys(defaultNodeMeshOpts)) {
+            // @ts-ignore
+            tmp[k] = opts?.nodeMeshOpts?.[k] ?? defaultNodeMeshOpts[k];
+        }
+        // @ts-ignore
+        this.nodeMeshOpts = tmp;
 
         // create graph node
         this.ngraphNode = this.parentGraph.ngraph.addNode(nodeId, {});
         this.ngraphNode.data.parentNode = this;
 
         // create mesh
-        this.mesh = defaultNodeMeshFactory(this, this.parentGraph, defaultNodeMeshOpts);
+        this.mesh = this.nodeMeshOpts.nodeMeshFactory(this, this.parentGraph, this.nodeMeshOpts);
         this.mesh.metadata = {};
         this.mesh.metadata.parentNode = this;
 

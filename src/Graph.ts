@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera, PhotoDome } from "@babylonjs/core";
 // const createGraph = require('ngraph.graph');
 import createGraph, { Graph as NGraph } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
@@ -7,7 +7,8 @@ import { Edge } from "./Edge";
 
 interface GraphOpts {
     element: string | HTMLElement;
-    nodeMeshOpts: NodeMeshOpts;
+    nodeMeshOpts?: NodeMeshOpts;
+    skybox?: string;
 }
 
 export class Graph {
@@ -19,6 +20,7 @@ export class Graph {
     ngraph: NGraph;
     ngraphLayout: NGraphLayout<NGraph>;
     nodeMeshOpts: NodeMeshOpts;
+    skybox?: string;
 
     constructor(opts: GraphOpts) {
         // get the element that we are going to use for placing our canvas
@@ -50,6 +52,19 @@ export class Graph {
         this.camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new Vector3(0, 0, 0));
         this.camera.attachControl(this.canvas, true);
         new HemisphericLight("light", new Vector3(1, 1, 0));
+
+        // setup PhotoDome Skybox
+        if (opts.skybox) {
+            new PhotoDome(
+                "testdome",
+                opts.skybox,
+                {
+                    resolution: 32,
+                    size: 1000
+                },
+                this.scene
+            );
+        }
 
         // setup force directed graph engine
         this.ngraph = createGraph();
@@ -87,7 +102,10 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        return new Node(this, nodeId, metadata);
+        return new Node(this, nodeId, {
+            nodeMeshOpts: this.nodeMeshOpts,
+            metadata,
+        });
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
