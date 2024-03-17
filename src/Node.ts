@@ -124,7 +124,7 @@ export class Node {
 
     update(): void {
         if (this.dragging) {
-            return
+            return;
         }
 
         let pos = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
