@@ -11,7 +11,7 @@ export interface NodeMeshOpts {
     nodeMeshFactory?: NodeMeshFactory;
 }
 
-export const defaultNodeMeshOpts: Required<NodeMeshOpts> = {
+const defaultNodeMeshOpts: Required<NodeMeshOpts> = {
     color: "gold",
     shape: "sphere",
     nodeMeshFactory: defaultNodeMeshFactory,
