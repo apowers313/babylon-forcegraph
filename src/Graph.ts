@@ -2,12 +2,13 @@ import * as babylon from "@babylonjs/core";
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera, PhotoDome } from "@babylonjs/core";
 import createGraph, { Graph as NGraph } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
-import { NodeIdType, Node, NodeMeshOpts, defaultNodeMeshOpts } from "./Node";
-import { Edge } from "./Edge";
+import { NodeIdType, Node, NodeMeshOpts } from "./Node";
+import { Edge, EdgeMeshOpts } from "./Edge";
 
 interface GraphOpts {
     element: string | HTMLElement;
     nodeMeshOpts?: NodeMeshOpts;
+    edgeMeshOpts?: EdgeMeshOpts;
     skybox?: string;
 }
 
@@ -21,6 +22,7 @@ export class Graph {
     ngraph: NGraph;
     ngraphLayout: NGraphLayout<NGraph>;
     nodeMeshOpts: NodeMeshOpts;
+    edgeMeshOpts: EdgeMeshOpts;
     skybox?: string;
 
     constructor(opts: GraphOpts) {
@@ -73,8 +75,9 @@ export class Graph {
         this.ngraph = createGraph();
         this.ngraphLayout = ngraphCreateLayout(this.ngraph, { dimensions: 3 });
 
-        // configure Node styling
-        this.nodeMeshOpts = opts.nodeMeshOpts ?? defaultNodeMeshOpts;
+        // configure styling
+        this.nodeMeshOpts = opts.nodeMeshOpts ?? {};
+        this.edgeMeshOpts = opts.edgeMeshOpts ?? {};
     }
 
     async init() {
