@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Basic Example</title>
+
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="forceGraph"></div>
+
+    <script type="module">
+        import { Graph } from "/src/index.ts";
+
+        const g = new Graph({
+            element: "forceGraph",
+            nodeMeshOpts: {
+                shape: "box",
+                color: "red",
+            }
+        });
+        g.addNode(0);
+        g.addNode(1);
+        g.addNode(2);
+        g.addNode(3);
+        g.addEdge(0, 1);
+        g.init().then(() => {
+            console.log("init complete")
+        })
+    </script>
+</body>
+
+</html>

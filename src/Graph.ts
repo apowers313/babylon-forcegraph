@@ -1,5 +1,5 @@
+import * as babylon from "@babylonjs/core";
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera, PhotoDome } from "@babylonjs/core";
-// const createGraph = require('ngraph.graph');
 import createGraph, { Graph as NGraph } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
 import { NodeIdType, Node, NodeMeshOpts, defaultNodeMeshOpts } from "./Node";
@@ -12,6 +12,7 @@ interface GraphOpts {
 }
 
 export class Graph {
+    BABYLON: babylon;
     element: HTMLElement;
     canvas: HTMLCanvasElement;
     engine: Engine;
@@ -23,6 +24,8 @@ export class Graph {
     skybox?: string;
 
     constructor(opts: GraphOpts) {
+        this.BABYLON = babylon;
+
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
             let e = document.getElementById(opts.element);
