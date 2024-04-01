@@ -1,18 +1,26 @@
-import { GreasedLineMesh, CreateGreasedLine } from "@babylonjs/core";
+import { GreasedLineBaseMesh, CreateGreasedLine, Color3 } from "@babylonjs/core";
 import type { Graph } from "./Graph";
 import type { NodeIdType } from "./Node";
 import { Link as NGraphLink } from "ngraph.graph";
+import { colorNameToHex } from "./util"
 
 export interface EdgeMeshOpts {
-    edgeMeshFactory: EdgeMeshFactory;
+    color?: string;
+    edgeMeshFactory?: EdgeMeshFactory;
 }
 
 const defaultEdgeMeshOpts: Required<EdgeMeshOpts> = {
+    color: "white",
     edgeMeshFactory: defaultEdgeMeshFactory,
 }
 
-function defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshOpts): GreasedLineMesh {
-    return CreateGreasedLine("edge", { points: [0, 0, 0, 1, 1, 1] });
+function defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshOpts): GreasedLineBaseMesh {
+    let edgeColor = o.color ?? defaultEdgeMeshOpts.color;
+
+    return CreateGreasedLine("edge",
+        { points: [0, 0, 0, 1, 1, 1] },
+        { color: Color3.FromHexString(colorNameToHex(edgeColor)) },
+    );
 }
 
 export type EdgeMeshFactory = typeof defaultEdgeMeshFactory;
@@ -28,8 +36,8 @@ export class Edge {
     dst: NodeIdType;
     metadata: object;
     ngraphEdge: NGraphLink;
-    mesh: GreasedLineMesh;
-    edgeMeshOpts: EdgeMeshOpts;
+    mesh: GreasedLineBaseMesh;
+    edgeMeshOpts: Required<EdgeMeshOpts>;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -63,8 +71,8 @@ export class Edge {
 
         this.mesh.setPoints([
             [
-                lnk.from.x, lnk.from.y, lnk.from.z,
-                lnk.to.x, lnk.to.y, lnk.to.z
+                lnk.from.x, lnk.from.y, lnk.from.z ?? 0,
+                lnk.to.x, lnk.to.y, lnk.to.z ?? 0,
             ]
         ]);
     }

@@ -1,4 +1,3 @@
-import * as babylon from "@babylonjs/core";
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera, PhotoDome } from "@babylonjs/core";
 import createGraph, { Graph as NGraph } from "ngraph.graph";
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
@@ -13,7 +12,6 @@ interface GraphOpts {
 }
 
 export class Graph {
-    BABYLON: babylon;
     element: HTMLElement;
     canvas: HTMLCanvasElement;
     engine: Engine;
@@ -26,8 +24,6 @@ export class Graph {
     skybox?: string;
 
     constructor(opts: GraphOpts) {
-        this.BABYLON = babylon;
-
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
             let e = document.getElementById(opts.element);
@@ -108,6 +104,7 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
+        console.log("Adding node: " + nodeId);
         return new Node(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
             metadata,
@@ -117,4 +114,49 @@ export class Graph {
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
         return new Edge(this, srcNodeId, dstNodeId, metadata);
     }
+
+    async loadJsonData(url: string, opts: LoadJsonDataOpts = {}): Promise<void> {
+        const nodeListProp = opts.nodeListProp ?? "nodes";
+        const edgeListProp = opts.edgeListProp ?? "links";
+        const nodeIdProp = opts.nodeIdProp ?? "id";
+        const edgeSrcIdProp = opts.edgeSrcIdProp ?? "source";
+        const edgeDstIdProp = opts.edgeDstIdProp ?? "target";
+
+        // fetch data from URL
+        const response = await fetch(url, opts.fetchOpts);
+        const data = await response.json();
+
+        // check data
+        if (!Array.isArray(data[nodeListProp])) {
+            throw TypeError(`when fetching JSON data: '${nodeListProp}' was not an Array`);
+        }
+
+        if (!Array.isArray(data[edgeListProp])) {
+            throw TypeError(`when fetching JSON data: '${edgeListProp}' was not an Array`);
+        }
+
+        // iterate nodes adding data
+        for (let n of data[nodeListProp]) {
+            let id = n[nodeIdProp];
+            let metadata = n;
+            this.addNode(id, metadata);
+        }
+
+        // iterate edges adding data
+        for (let e of data[edgeListProp]) {
+            let srcId = e[edgeSrcIdProp];
+            let dstId = e[edgeDstIdProp];
+            let metadata = e;
+            this.addEdge(srcId, dstId, metadata);
+        }
+    }
+}
+
+interface LoadJsonDataOpts {
+    nodeListProp?: string;
+    edgeListProp?: string;
+    nodeIdProp?: string;
+    edgeSrcIdProp?: string;
+    edgeDstIdProp?: string;
+    fetchOpts?: Parameters<typeof fetch>[1];
 }
