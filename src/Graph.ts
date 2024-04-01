@@ -104,7 +104,6 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        console.log("Adding node: " + nodeId);
         return new Node(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
             metadata,
@@ -112,7 +111,10 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        return new Edge(this, srcNodeId, dstNodeId, metadata);
+        return new Edge(this, srcNodeId, dstNodeId, {
+            edgeMeshOpts: this.edgeMeshOpts,
+            metadata,
+        });
     }
 
     async loadJsonData(url: string, opts: LoadJsonDataOpts = {}): Promise<void> {

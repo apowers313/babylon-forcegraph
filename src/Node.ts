@@ -17,7 +17,7 @@ const defaultNodeMeshOpts: Required<NodeMeshOpts> = {
     nodeMeshFactory: defaultNodeMeshFactory,
 };
 
-function defaultNodeMeshFactory(n: Node, g: Graph, o: NodeMeshOpts): Mesh {
+function defaultNodeMeshFactory(_n: Node, _g: Graph, o: NodeMeshOpts): Mesh {
     let mesh: Mesh
 
     // create mesh shape

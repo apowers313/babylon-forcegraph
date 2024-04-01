@@ -24,11 +24,7 @@
         import { Graph } from "/src/index.ts";
 
         const g = new Graph({ element: "forceGraph" });
-        g.addNode(0);
-        g.addNode(1);
-        g.addNode(2);
-        g.addNode(3);
-        g.addEdge(0, 1);
+        await g.loadJsonData("./data/blocks.json");
         await g.init();
     </script>
 </body>

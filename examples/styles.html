@@ -20,7 +20,7 @@
 <body>
     <div id="forceGraph"></div>
 
-    <script type="module">
+    <script type="module" async>
         import { Graph } from "/src/index.ts";
 
         const g = new Graph({
@@ -28,16 +28,17 @@
             nodeMeshOpts: {
                 shape: "box",
                 color: "red",
-            }
+            },
+            edgeMeshOpts: {
+                color: "green",
+            },
         });
         g.addNode(0);
         g.addNode(1);
         g.addNode(2);
         g.addNode(3);
         g.addEdge(0, 1);
-        g.init().then(() => {
-            console.log("init complete")
-        })
+        await g.init();
     </script>
 </body>
 

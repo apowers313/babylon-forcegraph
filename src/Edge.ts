@@ -14,7 +14,7 @@ const defaultEdgeMeshOpts: Required<EdgeMeshOpts> = {
     edgeMeshFactory: defaultEdgeMeshFactory,
 }
 
-function defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshOpts): GreasedLineBaseMesh {
+function defaultEdgeMeshFactory(_e: Edge, _g: Graph, o: EdgeMeshOpts): GreasedLineBaseMesh {
     let edgeColor = o.color ?? defaultEdgeMeshOpts.color;
 
     return CreateGreasedLine("edge",
@@ -27,7 +27,7 @@ export type EdgeMeshFactory = typeof defaultEdgeMeshFactory;
 
 interface EdgeOpts {
     metadata?: object;
-    edgeMeshFactory?: EdgeMeshFactory;
+    edgeMeshOpts?: EdgeMeshOpts;
 }
 
 export class Edge {
