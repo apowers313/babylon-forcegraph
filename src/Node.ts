@@ -67,6 +67,7 @@ export type NodeMeshFactory = typeof defaultNodeMeshFactory;
 interface NodeOpts {
     metadata?: object;
     nodeMeshOpts?: NodeMeshOpts;
+    pinOnDrag?: boolean;
 }
 
 export class Node {
@@ -78,6 +79,7 @@ export class Node {
     meshDragBehavior: SixDofDragBehavior;
     dragging = false;
     nodeMeshOpts: Required<NodeMeshOpts>;
+    pinOnDrag: boolean;
 
     constructor(graph: Graph, nodeId: NodeIdType, opts: NodeOpts = {}) {
         this.parentGraph = graph;
@@ -103,12 +105,16 @@ export class Node {
         this.mesh.metadata.parentNode = this;
 
         // drag behavior
+        this.pinOnDrag = opts.pinOnDrag ?? true;
         this.meshDragBehavior = new SixDofDragBehavior();
         this.mesh.addBehavior(this.meshDragBehavior);
         this.meshDragBehavior.onDragStartObservable.add(() => {
             this.dragging = true;
         });
         this.meshDragBehavior.onDragEndObservable.add(() => {
+            if (this.pinOnDrag) {
+                this.pin();
+            }
             this.dragging = false;
         });
         // onDragObservable.add
@@ -133,5 +139,13 @@ export class Node {
         if (pos.z) {
             this.mesh.position.z = pos.z;
         }
+    }
+
+    pin(): void {
+        this.parentGraph.ngraphLayout.pinNode(this.ngraphNode, true)
+    }
+
+    unpin(): void {
+        this.parentGraph.ngraphLayout.pinNode(this.ngraphNode, false)
     }
 }

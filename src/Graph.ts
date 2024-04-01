@@ -9,6 +9,7 @@ interface GraphOpts {
     nodeMeshOpts?: NodeMeshOpts;
     edgeMeshOpts?: EdgeMeshOpts;
     skybox?: string;
+    pinOnDrag?: boolean;
 }
 
 export class Graph {
@@ -22,8 +23,12 @@ export class Graph {
     nodeMeshOpts: NodeMeshOpts;
     edgeMeshOpts: EdgeMeshOpts;
     skybox?: string;
+    pinOnDrag?: boolean;
 
     constructor(opts: GraphOpts) {
+        // configure graph
+        this.pinOnDrag = opts.pinOnDrag ?? true;
+
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
             let e = document.getElementById(opts.element);
@@ -106,6 +111,7 @@ export class Graph {
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
         return new Node(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
+            pinOnDrag: this.pinOnDrag,
             metadata,
         });
     }
