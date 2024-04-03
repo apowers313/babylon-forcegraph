@@ -141,17 +141,38 @@ export class Node {
         // ActionManager.OnRightPickTrigger
         // ActionManager.OnCenterPickTrigger
         // ActionManager.OnLongPressTrigger
-        this.mesh.actionManager.registerAction(
-            new ExecuteCodeAction(
-                {
-                    trigger: ActionManager.OnDoublePickTrigger,
-                    // trigger: ActionManager.OnLongPressTrigger,
-                },
-                () => {
-                    this.parentGraph?.loadNodePeers?.(this, this.parentGraph);
-                },
-            ),
-        );
+        if (this.parentGraph.fetchNodes && this.parentGraph.fetchEdges) {
+            const { fetchNodes, fetchEdges } = this.parentGraph;
+            this.mesh.actionManager.registerAction(
+                new ExecuteCodeAction(
+                    {
+                        trigger: ActionManager.OnDoublePickTrigger,
+                        // trigger: ActionManager.OnLongPressTrigger,
+                    },
+                    () => {
+                        // fetch all edges for current node
+                        const edges = fetchEdges(this, this.parentGraph);
+
+                        // create set of unique node ids
+                        const nodeIds: Set<NodeIdType> = new Set();
+                        edges.forEach((e) => {
+                            nodeIds.add(e.source);
+                            nodeIds.add(e.target);
+                        });
+                        nodeIds.delete(this.id);
+
+                        // fetch all nodes from associated edges
+                        const nodes = fetchNodes(nodeIds, this.parentGraph);
+
+                        // add all the nodes and edges we collected
+                        nodes.forEach((n) => this.parentGraph.addNode(n.id, n.metadata));
+                        edges.forEach((e) => this.parentGraph.addEdge(e.source, e.target, e.metadata));
+
+                        // TODO: fetch and add secondary edges
+                    },
+                ),
+            );
+        }
     }
 
     createLabel(text: string): Mesh {

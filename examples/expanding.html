@@ -25,28 +25,19 @@
 
         const response = await fetch("./data/miserables.json");
         const data = await response.json();
-        function loadNodePeers(node, graph) {
-            console.log(`loading peers for node: ${node.id}`);
-
-            const selectedEdges = data.links
-                .filter((e) => e.source === node.id || e.target === node.id);
-            console.log("selectedEdges", selectedEdges);
-
-            const selectedNodeIds = selectedEdges.map((e) => {
-                if (e.source === node.id) return e.target;
-                return e.source;
-            })
-            console.log("selectedNodeIds", selectedNodeIds);
-
-            const selectedNodes = data.nodes
-                .filter((n) => selectedNodeIds.includes(n.id));
-            console.log("selectedNodes", selectedNodes);
-
-            selectedNodes.forEach((n) => graph.addNode(n.id, n));
-            selectedEdges.forEach((e) => graph.addEdge(e.source, e.target, e));
+        function fetchEdges(n, _g) {
+            // find all edges with source and target links that match our
+            // specified node
+            const edgeArray = data.links.filter((e) => e.source === n.id || e.target === n.id)
+            return new Set(edgeArray);
         }
 
-        const g = new Graph({ element: "forceGraph", loadNodePeers });
+        function fetchNodes(nodeIdSet, _g) {
+            const nodeArray = data.nodes.filter((n) => nodeIdSet.has(n.id));
+            return new Set(nodeArray);
+        }
+
+        const g = new Graph({ element: "forceGraph", fetchEdges, fetchNodes });
 
         const firstNode = data.nodes[64]; // 64 = "Bossuet", because it's an interesting node
         g.addNode(firstNode.id, firstNode);

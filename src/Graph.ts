@@ -4,16 +4,27 @@ import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
 import { NodeIdType, Node, NodeMeshOpts } from "./Node";
 import { Edge, EdgeMeshOpts } from "./Edge";
 
-type LoadNodePeers = (n: Node, g: Graph) => void;
-
 interface GraphOpts {
     element: string | HTMLElement;
     nodeMeshOpts?: NodeMeshOpts;
     edgeMeshOpts?: EdgeMeshOpts;
     skybox?: string;
     pinOnDrag?: boolean;
-    loadNodePeers?: LoadNodePeers;
+    fetchNodes?: FetchNodes;
+    fetchEdges?: FetchEdges
 }
+
+interface NodeObject {
+    id: NodeIdType,
+    metadata: object,
+}
+interface EdgeObject {
+    source: NodeIdType,
+    target: NodeIdType,
+    metadata: object,
+}
+type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
+type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
 
 export class Graph {
     element: HTMLElement;
@@ -27,12 +38,14 @@ export class Graph {
     edgeMeshOpts: EdgeMeshOpts;
     skybox?: string;
     pinOnDrag?: boolean;
-    loadNodePeers?: LoadNodePeers;
+    fetchNodes?: FetchNodes;
+    fetchEdges?: FetchEdges;
 
     constructor(opts: GraphOpts) {
         // configure graph
         this.pinOnDrag = opts.pinOnDrag ?? true;
-        this.loadNodePeers = opts.loadNodePeers;
+        this.fetchNodes = opts.fetchNodes;
+        this.fetchEdges = opts.fetchEdges;
 
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
