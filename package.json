@@ -9,7 +9,8 @@
     "preview": "vite preview"
   },
   "peerDependencies": {
-    "@babylonjs/core": "^6.49.0"
+    "@babylonjs/core": "^6.49.0",
+    "@babylonjs/gui": "^6.49.0"
   },
   "devDependencies": {
     "@babylonjs/inspector": "^6.46.0",

@@ -1,6 +1,6 @@
 import { GreasedLineBaseMesh, CreateGreasedLine, Color3 } from "@babylonjs/core";
 import type { Graph } from "./Graph";
-import type { NodeIdType } from "./Node";
+import { Node, NodeIdType } from "./Node";
 import { Link as NGraphLink } from "ngraph.graph";
 import { colorNameToHex } from "./util"
 
@@ -45,7 +45,13 @@ export class Edge {
         this.dst = dstNodeId;
         this.metadata = opts.metadata ?? {};
 
-        // TODO: make sure both srcNode and dstNode already exist
+        // make sure both srcNode and dstNode already exist
+        if (!Node.list.has(srcNodeId)) {
+            throw new Error(`Attempting to create edge '${srcNodeId}->${dstNodeId}', Node '${srcNodeId}' hasn't been created yet.`);
+        }
+        if (!Node.list.has(dstNodeId)) {
+            throw new Error(`Attempting to create edge '${srcNodeId}->${dstNodeId}', Node '${dstNodeId}' hasn't been created yet.`);
+        }
 
         // copy edgeMeshOpts
         let tmp = {};
@@ -76,4 +82,58 @@ export class Edge {
             ]
         ]);
     }
+
+    static get list(): EdgeMap {
+        return globalEdgeList;
+    }
+
+    static create(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
+        const existingEdge = Edge.list.get(srcNodeId, dstNodeId);
+        if (existingEdge) {
+            return existingEdge;
+        }
+
+        const e = new Edge(graph, srcNodeId, dstNodeId, opts);
+        Edge.list.set(srcNodeId, dstNodeId, e);
+
+        return e;
+    }
 }
+
+class EdgeMap {
+    map: Map<NodeIdType, Map<NodeIdType, Edge>> = new Map();
+
+    has(srcId: NodeIdType, dstId: NodeIdType): boolean {
+        const dstMap = this.map.get(srcId);
+        if (!dstMap) {
+            return false;
+        }
+
+        return dstMap.has(dstId);
+    }
+
+    set(srcId: NodeIdType, dstId: NodeIdType, e: Edge): void {
+        let dstMap = this.map.get(srcId);
+        if (!dstMap) {
+            dstMap = new Map();
+            this.map.set(srcId, dstMap);
+        }
+
+        if (dstMap.has(dstId)) {
+            throw new Error("Attempting to create duplicate Edge");
+        }
+
+        dstMap.set(dstId, e);
+    }
+
+    get(srcId: NodeIdType, dstId: NodeIdType): Edge | undefined {
+        let dstMap = this.map.get(srcId);
+        if (!dstMap) {
+            return undefined;
+        }
+
+        return dstMap.get(dstId);
+    }
+}
+
+const globalEdgeList = new EdgeMap();

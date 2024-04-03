@@ -4,12 +4,15 @@ import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
 import { NodeIdType, Node, NodeMeshOpts } from "./Node";
 import { Edge, EdgeMeshOpts } from "./Edge";
 
+type LoadNodePeers = (n: Node, g: Graph) => void;
+
 interface GraphOpts {
     element: string | HTMLElement;
     nodeMeshOpts?: NodeMeshOpts;
     edgeMeshOpts?: EdgeMeshOpts;
     skybox?: string;
     pinOnDrag?: boolean;
+    loadNodePeers?: LoadNodePeers;
 }
 
 export class Graph {
@@ -24,10 +27,13 @@ export class Graph {
     edgeMeshOpts: EdgeMeshOpts;
     skybox?: string;
     pinOnDrag?: boolean;
+    loadNodePeers?: LoadNodePeers;
 
     constructor(opts: GraphOpts) {
         // configure graph
         this.pinOnDrag = opts.pinOnDrag ?? true;
+        console.log(`opts:`, opts)
+        this.loadNodePeers = opts.loadNodePeers;
 
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
@@ -109,7 +115,8 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        return new Node(this, nodeId, {
+        console.log(`adding node: ${nodeId}`);
+        return Node.create(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
             metadata,
@@ -117,7 +124,8 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        return new Edge(this, srcNodeId, dstNodeId, {
+        console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
+        return Edge.create(this, srcNodeId, dstNodeId, {
             edgeMeshOpts: this.edgeMeshOpts,
             metadata,
         });
