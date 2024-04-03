@@ -32,7 +32,6 @@ export class Graph {
     constructor(opts: GraphOpts) {
         // configure graph
         this.pinOnDrag = opts.pinOnDrag ?? true;
-        console.log(`opts:`, opts)
         this.loadNodePeers = opts.loadNodePeers;
 
         // get the element that we are going to use for placing our canvas

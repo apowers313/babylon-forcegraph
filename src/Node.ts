@@ -107,10 +107,6 @@ export class Node {
 
         // create label
         this.label = this.createLabel(this.id.toString());
-        // const bb = this.mesh.getBoundingInfo().boundingBox;
-        // this.label.position.x = this.mesh.position.x;
-        // this.label.position.y = this.mesh.position.y + bb.maximum.y + 0.5;
-        // this.label.position.z = this.mesh.position.z;
         this.label.parent = this.mesh;
         this.label.position.y += 1;
 
@@ -152,55 +148,48 @@ export class Node {
                     // trigger: ActionManager.OnLongPressTrigger,
                 },
                 () => {
-                    console.log("loading peers...");
                     this.parentGraph?.loadNodePeers?.(this, this.parentGraph);
                 },
             ),
         );
     }
 
-    // createLabel2(text: string): Mesh {
-    // }
-
     createLabel(text: string): Mesh {
-        // borrowed from: https://playground.babylonjs.com/#TMHF80
+        // adapted from: https://playground.babylonjs.com/#TMHF80
 
-        //Set font
-        var font_size = 48;
+        // Set font
+        const font_size = 48;
         // var font = "bold " + font_size + "px Arial";
-        var font = font_size + "px Verdana";
+        const font = font_size + "px Verdana";
 
-        //Set height for plane
-        var planeHeight = 0.5;
+        // Set height for plane
+        const planeHeight = 0.5;
 
-        //Set height for dynamic texture
-        var DTHeight = 1.5 * font_size; //or set as wished
+        // Set height for dynamic texture
+        const DTHeight = 1.5 * font_size; //or set as wished
 
-        //Calcultae ratio
-        var ratio = planeHeight / DTHeight;
+        // Calcultae ratio
+        const ratio = planeHeight / DTHeight;
 
-        //Use a temporay dynamic texture to calculate the length of the text on the dynamic texture canvas
-        var temp = new DynamicTexture("DynamicTexture", 64, this.parentGraph.scene);
-        var tmpctx = temp.getContext();
+        // Use a temporay dynamic texture to calculate the length of the text on the dynamic texture canvas
+        const temp = new DynamicTexture("DynamicTexture", 64, this.parentGraph.scene);
+        const tmpctx = temp.getContext();
         tmpctx.font = font;
-        var DTWidth = tmpctx.measureText(text).width + 8;
+        const DTWidth = tmpctx.measureText(text).width + 8;
 
-        //Calculate width the plane has to be 
-        var planeWidth = DTWidth * ratio;
+        // Calculate width the plane has to be 
+        const planeWidth = DTWidth * ratio;
 
-        //Create dynamic texture and write the text
-        var dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, this.parentGraph.scene, false);
-        // dynamicTexture.getContext().clearColor(0, 0, 0, 0)
-        var mat = new StandardMaterial("mat", this.parentGraph.scene);
+        // Create dynamic texture and write the text
+        const dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, this.parentGraph.scene, false);
+        const mat = new StandardMaterial("mat", this.parentGraph.scene);
         mat.specularColor = Color3.Black();
-        // mat.specularTexture = null;
         dynamicTexture.hasAlpha = true;
 
-        dynamicTexture.clear("transparent");
+
+        // draw rounded rectangle for background
+        // borrowed from https://github.com/BabylonJS/Babylon.js/blob/2a7bd37ec899846b7a02c0507b1b9e27e4293180/packages/dev/gui/src/2D/controls/rectangle.ts#L209
         const context = dynamicTexture.getContext();
-
-        // https://github.com/BabylonJS/Babylon.js/blob/2a7bd37ec899846b7a02c0507b1b9e27e4293180/packages/dev/gui/src/2D/controls/rectangle.ts#L209
-
         context.fillStyle = "white";
         context.beginPath();
         const x = 0;
@@ -220,13 +209,14 @@ export class Node {
         context.closePath();
         context.fill();
 
+        // draw label text
         dynamicTexture.drawText(text, null, null, font, "#000000", "transparent", true);
         mat.diffuseTexture = dynamicTexture;
         mat.emissiveTexture = dynamicTexture;
         mat.disableLighting = true;
 
-        //Create plane and set dynamic texture as material
-        var plane = MeshBuilder.CreatePlane("plane", { width: planeWidth, height: planeHeight }, this.parentGraph.scene);
+        // Create plane and set dynamic texture as material
+        const plane = MeshBuilder.CreatePlane("plane", { width: planeWidth, height: planeHeight }, this.parentGraph.scene);
         plane.material = mat;
 
         // make text always face the camera
@@ -246,11 +236,6 @@ export class Node {
         if (pos.z) {
             this.mesh.position.z = pos.z;
         }
-
-        // const bb = this.mesh.getBoundingInfo().boundingBox;
-        // this.label.position.x = this.mesh.position.x;
-        // this.label.position.y = this.mesh.position.y + bb.maximum.y + 0.5;
-        // this.label.position.z = this.mesh.position.z;
     }
 
     pin(): void {
