@@ -1,7 +1,8 @@
 Progressive XR Forcegraph with batteries included.
 
 Examples:
-- Basic
-- Pretty
-- Styled
-- Loading JSON data
+- Basic (source)
+- Pretty (source)
+- Styled (source)
+- Loading JSON data (source)
+- Expanding (source)
