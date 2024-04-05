@@ -1,7 +1,6 @@
 import { GreasedLineBaseMesh, CreateGreasedLine, Color3 } from "@babylonjs/core";
 import type { Graph } from "./Graph";
 import { Node, NodeIdType } from "./Node";
-import { Link as NGraphLink } from "ngraph.graph";
 import { colorNameToHex } from "./util"
 
 export interface EdgeMeshOpts {
@@ -32,17 +31,16 @@ interface EdgeOpts {
 
 export class Edge {
     parentGraph: Graph;
-    src: NodeIdType;
-    dst: NodeIdType;
+    srcId: NodeIdType;
+    dstId: NodeIdType;
     metadata: object;
-    ngraphEdge: NGraphLink;
     mesh: GreasedLineBaseMesh;
     edgeMeshOpts: Required<EdgeMeshOpts>;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
-        this.src = srcNodeId;
-        this.dst = dstNodeId;
+        this.srcId = srcNodeId;
+        this.dstId = dstNodeId;
         this.metadata = opts.metadata ?? {};
 
         // make sure both srcNode and dstNode already exist
@@ -63,8 +61,7 @@ export class Edge {
         this.edgeMeshOpts = tmp;
 
         // create ngraph link
-        this.ngraphEdge = this.parentGraph.ngraph.addLink(srcNodeId, dstNodeId, {});
-        this.ngraphEdge.data.parentEdge = this;
+        this.parentGraph.graphEngine.addEdge(this);
 
         // create mesh
         this.mesh = this.edgeMeshOpts.edgeMeshFactory(this, this.parentGraph, this.edgeMeshOpts);
@@ -73,12 +70,12 @@ export class Edge {
     }
 
     update(): void {
-        let lnk = this.parentGraph.ngraphLayout.getLinkPosition(this.ngraphEdge.id);
+        let lnk = this.parentGraph.graphEngine.getEdgePosition(this);
 
         this.mesh.setPoints([
             [
-                lnk.from.x, lnk.from.y, lnk.from.z ?? 0,
-                lnk.to.x, lnk.to.y, lnk.to.z ?? 0,
+                lnk.src.x, lnk.src.y, lnk.src.z ?? 0,
+                lnk.dst.x, lnk.dst.y, lnk.dst.z ?? 0,
             ]
         ]);
     }

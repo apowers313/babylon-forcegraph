@@ -2,7 +2,6 @@ import { Color3, Mesh, StandardMaterial, MeshBuilder, SixDofDragBehavior, Action
 // import { AdvancedDynamicTexture } from "@babylonjs/gui";
 import type { Graph } from "./Graph";
 import { colorNameToHex } from "./util"
-import { Node as NGraphNode } from "ngraph.graph";
 
 export type NodeIdType = string | number;
 
@@ -75,7 +74,6 @@ export class Node {
     parentGraph: Graph;
     id: NodeIdType;
     metadata: object;
-    ngraphNode: NGraphNode;
     mesh: Mesh;
     label: Mesh;
     meshDragBehavior: SixDofDragBehavior;
@@ -98,8 +96,7 @@ export class Node {
         this.nodeMeshOpts = tmp;
 
         // create graph node
-        this.ngraphNode = this.parentGraph.ngraph.addNode(nodeId, {});
-        this.ngraphNode.data.parentNode = this;
+        this.parentGraph.graphEngine.addNode(this);
 
         // create mesh
         this.mesh = this.nodeMeshOpts.nodeMeshFactory(this, this.parentGraph, this.nodeMeshOpts);
@@ -127,7 +124,7 @@ export class Node {
         });
         // position changed
         this.meshDragBehavior.onPositionChangedObservable.add((event) => {
-            let pos = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
+            let pos = this.parentGraph.graphEngine.getNodePosition(this);
             pos.x = event.position.x;
             pos.y = event.position.y;
             if (pos.z) {
@@ -251,7 +248,7 @@ export class Node {
             return;
         }
 
-        let pos = this.parentGraph.ngraphLayout.getNodePosition(this.ngraphNode.id);
+        let pos = this.parentGraph.graphEngine.getNodePosition(this);
         this.mesh.position.x = pos.x;
         this.mesh.position.y = pos.y;
         if (pos.z) {
@@ -260,11 +257,11 @@ export class Node {
     }
 
     pin(): void {
-        this.parentGraph.ngraphLayout.pinNode(this.ngraphNode, true)
+        this.parentGraph.graphEngine.pin(this);
     }
 
     unpin(): void {
-        this.parentGraph.ngraphLayout.pinNode(this.ngraphNode, false)
+        this.parentGraph.graphEngine.unpin(this);
     }
 
     static get list(): NodeListType {

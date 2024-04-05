@@ -1,8 +1,8 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Camera, PhotoDome } from "@babylonjs/core";
-import createGraph, { Graph as NGraph } from "ngraph.graph";
-import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome } from "@babylonjs/core";
 import { NodeIdType, Node, NodeMeshOpts } from "./Node";
 import { Edge, EdgeMeshOpts } from "./Edge";
+import { GraphEngine } from "./GraphEngine";
+import { NGraphEngine } from "./NGraphEngine";
 
 interface GraphOpts {
     element: string | HTMLElement;
@@ -32,14 +32,14 @@ export class Graph {
     engine: Engine;
     scene: Scene;
     camera: Camera;
-    ngraph: NGraph;
-    ngraphLayout: NGraphLayout<NGraph>;
+    graphEngine: GraphEngine;
     nodeMeshOpts: NodeMeshOpts;
     edgeMeshOpts: EdgeMeshOpts;
     skybox?: string;
     pinOnDrag?: boolean;
     fetchNodes?: FetchNodes;
     fetchEdges?: FetchEdges;
+    graphType?: "ngraph" | "d3" = "ngraph";
 
     constructor(opts: GraphOpts) {
         // configure graph
@@ -91,8 +91,9 @@ export class Graph {
         }
 
         // setup force directed graph engine
-        this.ngraph = createGraph();
-        this.ngraphLayout = ngraphCreateLayout(this.ngraph, { dimensions: 3 });
+        // if (this.graphType === "ngraph") {
+        this.graphEngine = new NGraphEngine();
+        // }
 
         // configure styling
         this.nodeMeshOpts = opts.nodeMeshOpts ?? {};
@@ -122,9 +123,14 @@ export class Graph {
     }
 
     update() {
-        this.ngraphLayout.step();
-        this.ngraph.forEachLink((e) => e.data.parentEdge.update());
-        this.ngraph.forEachNode((n) => n.data.parentNode.update());
+        this.graphEngine.step();
+        for (let n of this.graphEngine.nodes) {
+            n.update();
+        }
+
+        for (let e of this.graphEngine.edges) {
+            e.update();
+        }
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
