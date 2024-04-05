@@ -108,9 +108,10 @@ export class Graph {
 
         // WebXR setup
         if (navigator.xr) {
-            const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
+            // const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
             await this.scene.createDefaultXRExperienceAsync({
-                floorMeshes: [ground]
+                // floorMeshes: [ground]
+                disableTeleportation: true,
             });
         }
 
