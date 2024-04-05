@@ -232,7 +232,7 @@ export class Node {
 
         // draw label text
         dynamicTexture.drawText(text, null, null, font, "#000000", "transparent", true);
-        mat.diffuseTexture = dynamicTexture;
+        mat.opacityTexture = dynamicTexture; // TODO: might be able to just use a rounded rectangle as the opacity layer rather than a colored background?
         mat.emissiveTexture = dynamicTexture;
         mat.disableLighting = true;
 
