@@ -2,8 +2,8 @@ import createGraph, { Graph as NGraph, Node as NGraphNode, Link as NGraphLink } 
 import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
 
 import type { GraphEngine, Position, EdgePosition } from "./GraphEngine"
-import type { Node } from "./Node";
-import type { Edge } from "./Edge";
+import type { Node } from "../Node";
+import type { Edge } from "../Edge";
 
 export class NGraphEngine implements GraphEngine {
     ngraph: NGraph;

@@ -1,9 +1,9 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome } from "@babylonjs/core";
 import { NodeIdType, Node, NodeMeshOpts } from "./Node";
 import { Edge, EdgeMeshOpts } from "./Edge";
-import { GraphEngine, GraphEngineNames } from "./GraphEngine";
-import { NGraphEngine } from "./NGraphEngine";
-import { D3GraphEngine } from "./D3GraphEngine";
+import { GraphEngine, GraphEngineNames } from "./engine/GraphEngine";
+import { NGraphEngine } from "./engine/NGraphEngine";
+import { D3GraphEngine } from "./engine/D3GraphEngine";
 
 interface GraphOpts {
     element: string | HTMLElement;

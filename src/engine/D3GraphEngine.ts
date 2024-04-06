@@ -9,8 +9,8 @@ import {
 } from "d3-force-3d";
 
 import type { GraphEngine, Position, EdgePosition } from "./GraphEngine";
-import type { Node } from "./Node";
-import type { Edge } from "./Edge";
+import type { Node } from "../Node";
+import type { Edge } from "../Edge";
 
 export class D3GraphEngine implements GraphEngine {
     d3ForceLayout: ReturnType<typeof forceSimulation>;
