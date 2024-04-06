@@ -1,8 +1,6 @@
 declare module "d3-force-3d" {
-    type NodeId = number | string;
     interface Node {
-        id: NodeId;
-        index?: number;
+        index?: NodeIndex;
         x?: number;
         y?: number;
         z?: number;
@@ -13,26 +11,32 @@ declare module "d3-force-3d" {
         fy?: number;
         fz?: number;
     }
-    type InitializedNode = Required<Node>;
+    interface InitializedNode extends Required<Node> {
+        fx?: number;
+        fy?: number;
+        fz?: number;
+    }
     type Nodes = Array<Node>;
 
     interface Edge {
-        source: Node | NodeId;
-        target: Node | NodeId;
+        source: unknown;
+        target: unknown;
         index?: number;
     }
-    interface InitializedEdge {
+    interface InitializedEdge extends Required<Edge> {
         source: Node;
         target: Node;
-        index: number;
     }
     type Edges = Array<Edge>
 
+    type IdAccessor = (n: Node) => string | number;
     export interface Force {
         (alpha?: number): void,
         initialize(nodes: Nodes, ...args: unknown): unknown,
-        links(x: unknown): unknown,
-        id(x: unknown): unknown,
+        links(links: Links): Force,
+        links(): Links,
+        id(forceAccessor: IdAccessor): Force,
+        id(): IdAccessor,
         iterations(x: unknown): unknown,
         strength(x: unknown): unknown,
         distance(x: unknown): unknown,

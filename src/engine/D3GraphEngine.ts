@@ -3,10 +3,31 @@ import {
     forceLink,
     forceManyBody,
     forceCenter,
-    Node as D3Node,
-    Edge as D3Edge,
-    InitializedEdge as D3EdgeInitialized,
+    Node as D3InternalNode,
+    Edge as D3InternalEdge,
+    InitializedNode as D3InternalNodeInitialized,
+    InitializedEdge as D3InternalEdgeInitialized,
 } from "d3-force-3d";
+
+import type { NodeIdType } from "../Node";
+
+interface D3Node extends D3InternalNode {
+    id: NodeIdType;
+}
+
+interface D3NodeInitialized extends D3InternalNodeInitialized {
+    id: NodeIdType;
+}
+
+interface D3Edge extends D3InternalEdge {
+    source: D3Node | NodeIdType;
+    target: D3Node | NodeIdType;
+}
+
+interface D3EdgeInitialized extends D3InternalEdgeInitialized {
+    source: D3NodeInitialized;
+    target: D3NodeInitialized;
+}
 
 import type { GraphEngine, Position, EdgePosition } from "./GraphEngine";
 import type { Node } from "../Node";
@@ -31,6 +52,7 @@ export class D3GraphEngine implements GraphEngine {
             .force("center", forceCenter())
             .force("dagRadial", null)
             .stop();
+        this.d3ForceLayout.force("link").id((d) => (d as D3Node).id);
     }
 
     async init(): Promise<void> { }
@@ -42,13 +64,24 @@ export class D3GraphEngine implements GraphEngine {
             // update nodes
             this.d3ForceLayout
                 .nodes([...this.nodeMapping.values()])
-                .alpha(1); // re-heat the simulation
+                .alpha(1) // re-heat the simulation
+                .stop()
 
             // update edges
-            this.d3ForceLayout.force("link")
-                .links(this.edgeMapping.values());
+            console.log("nodes", this.d3ForceLayout.nodes());
+            const linkList = [...this.edgeMapping.values()];
+            console.log("link list", linkList);
+            console.log("links before", this.d3ForceLayout.force("link").links())
+            this.d3ForceLayout
+                .force("link")
+                .links(linkList);
+            console.log("links after", this.d3ForceLayout.force("link").links())
+            console.log("link list after", linkList);
+            console.log("edgeMapping after", this.edgeMapping);
+            // throw new Error("stopping")
 
             this.graphNeedsRefresh = false;
+            console.log("D3 refresh done");
         }
     }
 
@@ -95,7 +128,7 @@ export class D3GraphEngine implements GraphEngine {
         const d3node = this._getMappedNode(n);
         d3node.x = newPos.x;
         d3node.y = newPos.y;
-        d3node.z = newPos.z;
+        d3node.z = newPos.z ?? 0;
         this.graphNeedsRefresh = true; // TODO: is this necessary?
     }
 
@@ -134,27 +167,26 @@ export class D3GraphEngine implements GraphEngine {
         this.graphNeedsRefresh = true; // TODO: is this necessary?
     }
 
-    private _getMappedNode(n: Node): D3Node {
+    private _getMappedNode(n: Node): D3NodeInitialized {
+        this.refresh(); // ensure consistent state
+
         const d3node = this.nodeMapping.get(n);
         if (!d3node) {
             throw new Error("Internal error: Node not found in D3GraphEngine");
         }
 
-        return d3node;
+        return d3node as D3NodeInitialized;
     }
 
     private _getMappedEdge(e: Edge): D3EdgeInitialized {
+        this.refresh(); // ensure consistent state
+
         let d3edge = this.edgeMapping.get(e);
         if (!d3edge) {
             throw new Error("Internal error: Edge not found in D3GraphEngine");
         }
 
-        if (typeof (d3edge.source) !== "object" ||
-            typeof (d3edge.target) !== "object") {
-            this.refresh();
-            d3edge = this.edgeMapping.get(e);
-        }
-
+        console.log("getMappedEdge returning:", d3edge);
         return d3edge as D3EdgeInitialized;
     }
 }

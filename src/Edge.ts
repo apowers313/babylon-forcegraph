@@ -70,7 +70,9 @@ export class Edge {
     }
 
     update(): void {
+        this.parentGraph.graphEngine.refresh();
         let lnk = this.parentGraph.graphEngine.getEdgePosition(this);
+        console.log("lnk", lnk);
 
         this.mesh.setPoints([
             [

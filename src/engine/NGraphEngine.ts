@@ -18,6 +18,8 @@ export class NGraphEngine implements GraphEngine {
 
     async init(): Promise<void> { }
 
+    refresh(): void { }
+
     step() {
         this.ngraphLayout.step();
     }
