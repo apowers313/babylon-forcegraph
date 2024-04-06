@@ -1,3 +1,3 @@
-export { Graph } from "./Graph";
-export { Node } from "./Node";
-export { Edge } from "./Edge";
+export { Graph } from "./src/Graph";
+export { Node } from "./src/Node";
+export { Edge } from "./src/Edge";
