@@ -1,32 +1,30 @@
 declare module "d3-force-3d" {
     interface Node {
-        index?: NodeIndex;
-        x?: number;
-        y?: number;
-        z?: number;
-        vx?: number;
-        vy?: number;
-        vz?: number;
+        index: NodeIndex;
+        x: number;
+        y: number;
+        z: number;
+        vx: number;
+        vy: number;
+        vz: number;
         fx?: number;
         fy?: number;
         fz?: number;
     }
-    interface InitializedNode extends Required<Node> {
-        fx?: number;
-        fy?: number;
-        fz?: number;
-    }
+
     type Nodes = Array<Node>;
 
-    interface Edge {
-        source: unknown;
-        target: unknown;
-        index?: number;
+    interface InputEdge {
+        source: unknown,
+        target: unknown,
     }
-    interface InitializedEdge extends Required<Edge> {
+
+    interface Edge {
         source: Node;
         target: Node;
+        index: number;
     }
+
     type Edges = Array<Edge>
 
     type IdAccessor = (n: Node) => string | number;
