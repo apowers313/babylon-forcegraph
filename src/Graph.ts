@@ -1,8 +1,9 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome } from "@babylonjs/core";
 import { NodeIdType, Node, NodeMeshOpts } from "./Node";
 import { Edge, EdgeMeshOpts } from "./Edge";
-import { GraphEngine } from "./GraphEngine";
+import { GraphEngine, GraphEngineNames } from "./GraphEngine";
 import { NGraphEngine } from "./NGraphEngine";
+import { D3GraphEngine } from "./D3GraphEngine";
 
 interface GraphOpts {
     element: string | HTMLElement;
@@ -11,7 +12,8 @@ interface GraphOpts {
     skybox?: string;
     pinOnDrag?: boolean;
     fetchNodes?: FetchNodes;
-    fetchEdges?: FetchEdges
+    fetchEdges?: FetchEdges;
+    graphEngineType?: GraphEngineNames;
 }
 
 interface NodeObject {
@@ -39,13 +41,14 @@ export class Graph {
     pinOnDrag?: boolean;
     fetchNodes?: FetchNodes;
     fetchEdges?: FetchEdges;
-    graphType?: "ngraph" | "d3" = "ngraph";
+    graphEngineType?: GraphEngineNames;
 
     constructor(opts: GraphOpts) {
         // configure graph
         this.pinOnDrag = opts.pinOnDrag ?? true;
         this.fetchNodes = opts.fetchNodes;
         this.fetchEdges = opts.fetchEdges;
+        this.graphEngineType = opts.graphEngineType ?? "ngraph";
 
         // get the element that we are going to use for placing our canvas
         if (typeof (opts.element) == "string") {
@@ -91,9 +94,13 @@ export class Graph {
         }
 
         // setup force directed graph engine
-        // if (this.graphType === "ngraph") {
-        this.graphEngine = new NGraphEngine();
-        // }
+        if (this.graphEngineType === "ngraph") {
+            this.graphEngine = new NGraphEngine();
+        } else if (this.graphEngineType === "d3") {
+            this.graphEngine = new D3GraphEngine();
+        } else {
+            throw new TypeError(`Unknown graph engine type: '${this.graphEngineType}'`);
+        }
 
         // configure styling
         this.nodeMeshOpts = opts.nodeMeshOpts ?? {};
@@ -134,7 +141,7 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        console.log(`adding node: ${nodeId}`);
+        // console.log(`adding node: ${nodeId}`);
         return Node.create(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
@@ -143,7 +150,7 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
+        // console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
         return Edge.create(this, srcNodeId, dstNodeId, {
             edgeMeshOpts: this.edgeMeshOpts,
             metadata,

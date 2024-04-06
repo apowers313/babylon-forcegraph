@@ -124,12 +124,7 @@ export class Node {
         });
         // position changed
         this.meshDragBehavior.onPositionChangedObservable.add((event) => {
-            let pos = this.parentGraph.graphEngine.getNodePosition(this);
-            pos.x = event.position.x;
-            pos.y = event.position.y;
-            if (pos.z) {
-                pos.z = event.position.z;
-            }
+            this.parentGraph.graphEngine.setNodePosition(this, event.position);
         });
 
         // click behavior

@@ -5,12 +5,11 @@ import type { GraphEngine, Position, EdgePosition } from "./GraphEngine"
 import type { Node } from "./Node";
 import type { Edge } from "./Edge";
 
-const nodeMapping: Map<Node, NGraphNode> = new Map();
-const edgeMapping: Map<Edge, NGraphLink> = new Map();
-
 export class NGraphEngine implements GraphEngine {
     ngraph: NGraph;
     ngraphLayout: NGraphLayout<NGraph>;
+    nodeMapping: Map<Node, NGraphNode> = new Map();
+    edgeMapping: Map<Edge, NGraphLink> = new Map();
 
     constructor() {
         this.ngraph = createGraph();
@@ -25,27 +24,29 @@ export class NGraphEngine implements GraphEngine {
 
     addNode(n: Node) {
         const ngraphNode: NGraphNode = this.ngraph.addNode(n.id, { parentNode: n });
-        nodeMapping.set(n, ngraphNode);
+        this.nodeMapping.set(n, ngraphNode);
     }
 
     addEdge(e: Edge) {
         const ngraphEdge = this.ngraph.addLink(e.srcId, e.dstId, { parentEdge: this });
-        edgeMapping.set(e, ngraphEdge);
+        this.edgeMapping.set(e, ngraphEdge);
     }
 
     getNodePosition(n: Node): Position {
-        const ngraphNode = nodeMapping.get(n);
-        if (!ngraphNode) {
-            throw new Error("Internal error: Node not found in NGraphEngine");
-        }
+        const ngraphNode = this._getMappedNode(n);
         return this.ngraphLayout.getNodePosition(ngraphNode.id);
     }
 
+    setNodePosition(n: Node, newPos: Position): void {
+        const ngraphNode = this._getMappedNode(n);
+        const currPos = this.ngraphLayout.getNodePosition(ngraphNode.id);
+        currPos.x = newPos.x;
+        currPos.y = newPos.y;
+        currPos.z = newPos.z;
+    }
+
     getEdgePosition(e: Edge): EdgePosition {
-        const ngraphEdge = edgeMapping.get(e);
-        if (!ngraphEdge) {
-            throw new Error("Internal error: Edge not found in NGraphEngine");
-        }
+        const ngraphEdge = this._getMappedEdge(e);
         const pos = this.ngraphLayout.getLinkPosition(ngraphEdge.id);
         return {
             src: {
@@ -62,53 +63,39 @@ export class NGraphEngine implements GraphEngine {
     }
 
     get nodes(): Iterable<Node> {
-        // const ngraph = this.ngraph;
-        // function* nodeGenerator() {
-        //     ngraph.forEachNode((n) => yield n.data.parentNode);
-        // }
-
-        // return nodeGenerator();
-
-
-        // const ret: Array<Node> = [];
-        // this.ngraph.forEachNode((n) => {
-        //     ret.push(n.data.parentNode);
-        // });
-
-        return nodeMapping.keys();
+        // ...is this cheating?
+        return this.nodeMapping.keys();
     }
 
     get edges(): Iterable<Edge> {
-        // const ngraph = this.ngraph;
-        // function* edgeGenerator() {
-        //     ngraph.forEachLink((e) => yield e.data.parentNode);
-        // }
-
-        // return edgeGenerator();
-
-
-        // const ret: Array<Edge> = [];
-        // this.ngraph.forEachLink((e) => {
-        //     ret.push(e.data.parentEdge);
-        // });
-        // return ret;
-
-        return edgeMapping.keys();
+        return this.edgeMapping.keys();
     }
 
     pin(n: Node): void {
-        const ngraphNode = nodeMapping.get(n);
-        if (!ngraphNode) {
-            throw new Error("Internal error: Node not found in NGraphEngine");
-        }
+        const ngraphNode = this._getMappedNode(n);
         this.ngraphLayout.pinNode(ngraphNode, true);
     }
 
     unpin(n: Node): void {
-        const ngraphNode = nodeMapping.get(n);
+        const ngraphNode = this._getMappedNode(n);
+        this.ngraphLayout.pinNode(ngraphNode, false);
+    }
+
+    private _getMappedNode(n: Node): NGraphNode {
+        const ngraphNode = this.nodeMapping.get(n);
         if (!ngraphNode) {
             throw new Error("Internal error: Node not found in NGraphEngine");
         }
-        this.ngraphLayout.pinNode(ngraphNode, false);
+
+        return ngraphNode;
+    }
+
+    private _getMappedEdge(e: Edge): NGraphLink {
+        const ngraphNode = this.edgeMapping.get(e);
+        if (!ngraphNode) {
+            throw new Error("Internal error: Edge not found in NGraphEngine");
+        }
+
+        return ngraphNode;
     }
 }
