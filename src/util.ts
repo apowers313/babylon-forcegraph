@@ -1,3 +1,7 @@
+export type DeepRequired<T> = Required<{
+    [K in keyof T]: T[K] extends Required<T[K]> ? T[K] : DeepRequired<T[K]>
+}>
+
 export function colorNameToHex(colorName: string): string {
     const colorMap = new Map<string, string>([
         ["aliceblue", "#f0f8ff"],
