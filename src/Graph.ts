@@ -37,11 +37,13 @@ export class Graph {
     graphEngine: GraphEngine;
     nodeMeshOpts: NodeMeshOpts;
     edgeMeshOpts: EdgeMeshOpts;
+    running = true;
     skybox?: string;
     pinOnDrag?: boolean;
     fetchNodes?: FetchNodes;
     fetchEdges?: FetchEdges;
     graphEngineType?: GraphEngineNames;
+    minDelta = 0.02;
 
     constructor(opts: GraphOpts) {
         // configure graph
@@ -130,13 +132,25 @@ export class Graph {
     }
 
     update() {
+        if (!this.running) {
+            return;
+        }
+
         this.graphEngine.step();
+
+        let maxDelta = 0;
         for (let n of this.graphEngine.nodes) {
+            maxDelta = Math.max(maxDelta, n.getDeltaPos());
             n.update();
         }
 
         for (let e of this.graphEngine.edges) {
             e.update();
+        }
+
+        if (maxDelta < this.minDelta) {
+            console.log("graph engine settled, stopping");
+            this.running = false;
         }
     }
 
