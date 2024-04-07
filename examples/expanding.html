@@ -15,13 +15,22 @@
             padding: 0;
         }
     </style>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "@babylonjs/core": "https://cdn.jsdelivr.net/npm/@babylonjs/core@6.48.1/+esm",
+            "babylon-forcegraph": "https://cdn.jsdelivr.net/gh/apowers313/babylon-forcegraph@master/dist/babylon-forcegraph.js"
+        }
+    }
+    </script>
 </head>
 
 <body>
     <div id="forceGraph"></div>
 
     <script type="module" async>
-        import { Graph, Node } from "/src/index.ts";
+        import { Graph, Node } from "babylon-forcegraph";
 
         const response = await fetch("./data/miserables.json");
         const data = await response.json();
