@@ -26,7 +26,7 @@ function isD3Node(n: any): n is D3Node {
         typeof n.z === "number" &&
         typeof n.vx === "number" &&
         typeof n.vy === "number" &&
-        typeof n.nz === "number") {
+        typeof n.vz === "number") {
         return true;
     }
 
@@ -77,10 +77,11 @@ export class D3GraphEngine implements GraphEngine {
     refresh(): void {
         if (this.graphNeedsRefresh || this.reheat) {
             // update nodes
-            const nodeList: Array<D3Node | D3InputNode> = [...this.nodeMapping.values()];
-            nodeList.concat([...this.newNodeMap.values()]);
+            let nodeList: Array<D3Node | D3InputNode> = [...this.nodeMapping.values()];
+            nodeList = nodeList.concat([...this.newNodeMap.values()]);
             this.d3ForceLayout
                 .alpha(1) // re-heat the simulation
+                .nodes(nodeList)
                 .stop()
 
             // copy over new nodes
@@ -95,8 +96,8 @@ export class D3GraphEngine implements GraphEngine {
             this.newNodeMap.clear();
 
             // update edges
-            const linkList: Array<D3Edge | D3InputEdge> = [...this.edgeMapping.values()];
-            linkList.concat([...this.newEdgeMap.values()]);
+            let linkList: Array<D3Edge | D3InputEdge> = [...this.edgeMapping.values()];
+            linkList = linkList.concat([...this.newEdgeMap.values()]);
             this.d3ForceLayout
                 .force("link")
                 .links(linkList);

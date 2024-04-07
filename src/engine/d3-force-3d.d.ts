@@ -46,7 +46,7 @@ declare module "d3-force-3d" {
         stop(): Simulation,
         numDimensions(n: number): Simulation,
         numDimensions(): number,
-        nodes(nodes: Nodes): Simulation,
+        nodes(nodes: Array<object>): Simulation,
         nodes(): Nodes,
         alpha(n: number): Simulation,
         alpha(): number,

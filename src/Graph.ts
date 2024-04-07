@@ -191,8 +191,6 @@ export class Graph {
             let metadata = e
             this.addEdge(srcId, dstId, metadata);
         }
-
-        this.graphEngine.refresh();
     }
 
 }

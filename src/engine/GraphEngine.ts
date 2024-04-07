@@ -16,7 +16,6 @@ export interface EdgePosition {
 
 export interface GraphEngine {
     init(): Promise<void>,
-    refresh(): void,
     step(): void,
     addNode(n: Node): void,
     addEdge(e: Edge): void,
