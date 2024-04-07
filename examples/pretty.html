@@ -31,25 +31,34 @@
 
     <script type="module" async>
         import { Graph } from "babylon-forcegraph";
+        import {
+            MeshBuilder,
+            ActionManager,
+            ExecuteCodeAction,
+            PBRMaterial,
+            Texture,
+            Color3,
+            GlowLayer,
+        } from "@babylonjs/core";
 
         const g = new Graph({
             element: "forceGraph",
             skybox: "./assets/rolling_hills_equirectangular_skybox.png",
             nodeMeshOpts: {
                 nodeMeshFactory: function nodeMeshFactory(node, graph, opts) {
-                    const mesh = g.BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 4 });
+                    const mesh = MeshBuilder.CreateSphere("sphere", { diameter: 4 });
                     mesh.material = CreateMagic();
                     mesh.isPickable = true;
-                    mesh.actionManager = new g.BABYLON.ActionManager(g.scene);
+                    mesh.actionManager = new ActionManager(g.scene);
 
                     //ON MOUSE ENTER
-                    mesh.actionManager.registerAction(new g.BABYLON.ExecuteCodeAction(g.BABYLON.ActionManager.OnPointerOverTrigger, function (ev) {
+                    mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, function (ev) {
                         g.scene.hoverCursor = "pointer";
                         mesh.material.emissiveIntensity = 3;
                     }));
 
                     //ON MOUSE EXIT
-                    mesh.actionManager.registerAction(new g.BABYLON.ExecuteCodeAction(g.BABYLON.ActionManager.OnPointerOutTrigger, function (ev) {
+                    mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, function (ev) {
                         mesh.material.emissiveIntensity = 0.5;
                     }));
                     return mesh;
@@ -58,13 +67,13 @@
         });
 
         function CreateMagic() {
-            const pbr = new g.BABYLON.PBRMaterial("pbr", g.scene);
-            pbr.albedoTexture = new g.BABYLON.Texture(
+            const pbr = new PBRMaterial("pbr", g.scene);
+            pbr.albedoTexture = new Texture(
                 "./assets/magic/MagicCurvesStoneFloor_basecolor.png",
                 g.scene
             );
 
-            pbr.bumpTexture = new g.BABYLON.Texture(
+            pbr.bumpTexture = new Texture(
                 "./assets/magic/MagicCurvesStoneFloor_normal.png",
                 g.scene
             );
@@ -72,26 +81,26 @@
             pbr.invertNormalMapX = true;
             pbr.invertNormalMapY = true;
 
-            pbr.ambientTexture = new g.BABYLON.Texture(
+            pbr.ambientTexture = new Texture(
                 "./assets/magic/MagicCurvesStoneFloor_ambientocclusion.png",
                 g.scene
             );
 
-            // pbr.metallicTexture = new BABYLON.Texture(
+            // pbr.metallicTexture = new Texture(
             //   // "./assets/magic/MagicCurvesStoneFloor_metallic.png",
             //   // "./assets/magic/MagicCurvesStoneFloor_roughness.png",
             //   g.scene
             // );
 
-            pbr.metallicReflectanceTexture = new g.BABYLON.Texture(
+            pbr.metallicReflectanceTexture = new Texture(
                 // "./assets/magic/MagicCurvesStoneFloor_roughness.png",
                 "./assets/magic/MagicCurvesStoneFloor_metallic.png",
                 g.scene
             );
 
-            pbr.emissiveColor = new g.BABYLON.Color3(1, 1, 1);
+            pbr.emissiveColor = new Color3(1, 1, 1);
 
-            pbr.emissiveTexture = new g.BABYLON.Texture(
+            pbr.emissiveTexture = new Texture(
                 "./assets/magic/MagicCurvesStoneFloor_emissive.png",
                 g.scene
             );
@@ -103,14 +112,21 @@
             return pbr;
         }
 
-        const glowLayer = new g.BABYLON.GlowLayer("glow", g.scene);
+        const glowLayer = new GlowLayer("glow", g.scene);
         glowLayer.intensity = 1;
 
         g.addNode(0);
         g.addNode(1);
         g.addNode(2);
         g.addNode(3);
+        g.addNode(4);
+        g.addNode(5);
         g.addEdge(0, 1);
+        g.addEdge(0, 2);
+        g.addEdge(2, 3);
+        g.addEdge(3, 0);
+        g.addEdge(3, 4);
+        g.addEdge(3, 5);
         await g.init();
     </script>
 </body>
