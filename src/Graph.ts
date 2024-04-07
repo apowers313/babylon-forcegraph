@@ -141,7 +141,7 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        console.log(`adding node: ${nodeId}`);
+        // console.log(`adding node: ${nodeId}`);
         return Node.create(this, nodeId, {
             nodeMeshOpts: this.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
@@ -150,7 +150,7 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
+        // console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
         return Edge.create(this, srcNodeId, dstNodeId, {
             edgeMeshOpts: this.edgeMeshOpts,
             metadata,

@@ -76,8 +76,6 @@ export class D3GraphEngine implements GraphEngine {
 
     refresh(): void {
         if (this.graphNeedsRefresh || this.reheat) {
-            console.log("doing D3 refresh...");
-
             // update nodes
             const nodeList: Array<D3Node | D3InputNode> = [...this.nodeMapping.values()];
             nodeList.concat([...this.newNodeMap.values()]);
@@ -97,17 +95,11 @@ export class D3GraphEngine implements GraphEngine {
             this.newNodeMap.clear();
 
             // update edges
-            console.log("nodes", this.d3ForceLayout.nodes());
             const linkList: Array<D3Edge | D3InputEdge> = [...this.edgeMapping.values()];
             linkList.concat([...this.newEdgeMap.values()]);
-            console.log("link list", linkList);
-            console.log("links before", this.d3ForceLayout.force("link").links())
             this.d3ForceLayout
                 .force("link")
                 .links(linkList);
-            console.log("links after", this.d3ForceLayout.force("link").links())
-            console.log("link list after", linkList);
-            console.log("edgeMapping after", this.edgeMapping);
 
             // copy over new edges
             for (let entry of this.newEdgeMap.entries()) {
@@ -119,9 +111,6 @@ export class D3GraphEngine implements GraphEngine {
                 this.edgeMapping.set(e, d3edge);
             }
             this.newEdgeMap.clear();
-
-            // throw new Error("stopping")
-            console.log("D3 refresh done");
         }
     }
 
@@ -224,7 +213,6 @@ export class D3GraphEngine implements GraphEngine {
             throw new Error("Internal error: Edge not found in D3GraphEngine");
         }
 
-        console.log("getMappedEdge returning:", d3edge);
         return d3edge;
     }
 }
