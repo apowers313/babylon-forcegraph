@@ -14,6 +14,12 @@
             margin: 0;
             padding: 0;
         }
+
+        #forceGraph {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
     </style>
 
     <script type="importmap">
@@ -30,23 +36,62 @@
     <div id="forceGraph"></div>
 
     <script type="module" async>
-        import { Graph } from "babylon-forcegraph";
+        import { Graph, util } from "babylon-forcegraph";
+
+        function randomFromList(list) {
+            const idx = Math.floor(Math.random() * list.length);
+            return list[idx];
+        }
+
+        function randomColor() {
+            return randomFromList([...util.colorMap.keys()]);
+        }
+
+        function randomBool(likelihood = 0.5) {
+            return !!(Math.random() > likelihood);
+        }
+
+        function randomRange(min, max) {
+            return (Math.random() * (max - min) + min);
+        }
+
+
+        const nodeMeshOpts = {
+            shape: randomFromList(["box", "sphere", "cylinder", "cone", "capsule", "torus", "torus-knot", "tetrahedron", "octahedron", "dodecahedron", "icosahedron", "rhombicuboctahedron", "triangular_prism", "pentagonal_prism", "hexagonal_prism", "square_pyramid", "pentagonal_pyramid", "triangular_dipyramid", "pentagonal_dipyramid", "elongated_square_dypyramid", "elongated_pentagonal_dipyramid", "elongated_pentagonal_cupola", "goldberg", "icosphere", "geodesic"]),
+            color: randomColor(),
+            // wireframe: randomBool(),
+            // opacity: randomRange(0.3, 1),
+        };
+
+        const edgeMeshOpts = {
+            color: randomColor(),
+            type: randomFromList(["plain", "arrow", "moving"]),
+            movingLineOpts: {
+                baseColor: randomColor(),
+                width: randomRange(0.1, 0.7),
+            }
+        };
+
+        console.log("nodeMeshOpts:", nodeMeshOpts);
+        console.log("edgeMeshOpts:", edgeMeshOpts);
 
         const g = new Graph({
             element: "forceGraph",
-            nodeMeshOpts: {
-                shape: "box",
-                color: "red",
-            },
-            edgeMeshOpts: {
-                color: "yellow",
-            },
+            nodeMeshOpts,
+            edgeMeshOpts,
         });
         g.addNode(0);
         g.addNode(1);
         g.addNode(2);
         g.addNode(3);
+        g.addNode(4);
+        g.addNode(5);
         g.addEdge(0, 1);
+        g.addEdge(0, 2);
+        g.addEdge(2, 3);
+        g.addEdge(3, 0);
+        g.addEdge(3, 4);
+        g.addEdge(3, 5);
         await g.init();
     </script>
 </body>
