@@ -48,7 +48,7 @@
         }
 
         function randomBool(likelihood = 0.5) {
-            return !!(Math.random() > likelihood);
+            return !!(Math.random() < likelihood);
         }
 
         function randomRange(min, max) {
@@ -59,8 +59,8 @@
         const nodeMeshOpts = {
             shape: randomFromList(["box", "sphere", "cylinder", "cone", "capsule", "torus", "torus-knot", "tetrahedron", "octahedron", "dodecahedron", "icosahedron", "rhombicuboctahedron", "triangular_prism", "pentagonal_prism", "hexagonal_prism", "square_pyramid", "pentagonal_pyramid", "triangular_dipyramid", "pentagonal_dipyramid", "elongated_square_dypyramid", "elongated_pentagonal_dipyramid", "elongated_pentagonal_cupola", "goldberg", "icosphere", "geodesic"]),
             color: randomColor(),
-            // wireframe: randomBool(),
-            // opacity: randomRange(0.3, 1),
+            wireframe: randomBool(0.05),
+            opacity: randomFromList([1, 1, 1, 1, 0.5]),
         };
 
         const edgeMeshOpts = {

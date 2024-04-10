@@ -1,13 +1,12 @@
 import { GreasedLineBaseMesh, CreateGreasedLine, Color3, RawTexture, Engine, GreasedLineMeshColorMode, StandardMaterial } from "@babylonjs/core";
-import type { Graph } from "./Graph";
 import { Node, NodeIdType } from "./Node";
-import { colorNameToHex, DeepRequired } from "./util"
-
-export type EdgeMeshFactory = typeof Edge.defaultEdgeMeshFactory;
+import { colorNameToHex } from "./util";
+import type { Graph } from "./Graph";
+import type { EdgeMeshConfig } from "./Config"
 
 interface EdgeOpts {
     metadata?: object;
-    edgeMeshOpts?: EdgeMeshOpts;
+    edgeMeshConfig?: EdgeMeshConfig;
 }
 
 export class Edge {
@@ -16,7 +15,7 @@ export class Edge {
     dstId: NodeIdType;
     metadata: object;
     mesh: GreasedLineBaseMesh;
-    edgeMeshOpts: DeepRequired<EdgeMeshOpts>;
+    edgeMeshConfig: EdgeMeshConfig;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -32,20 +31,14 @@ export class Edge {
             throw new Error(`Attempting to create edge '${srcNodeId}->${dstNodeId}', Node '${dstNodeId}' hasn't been created yet.`);
         }
 
-        // copy edgeMeshOpts
-        let tmp = {};
-        for (let k of Object.keys(defaultEdgeMeshOpts)) {
-            // @ts-ignore
-            tmp[k] = opts?.edgeMeshOpts?.[k] ?? defaultEdgeMeshOpts[k];
-        }
-        // @ts-ignore
-        this.edgeMeshOpts = tmp;
+        // copy edgeMeshConfig
+        this.edgeMeshConfig = this.parentGraph.config.edgeMeshOpts;
 
         // create ngraph link
         this.parentGraph.graphEngine.addEdge(this);
 
         // create mesh
-        this.mesh = this.edgeMeshOpts.edgeMeshFactory(this, this.parentGraph, this.edgeMeshOpts);
+        this.mesh = this.edgeMeshConfig.edgeMeshFactory(this, this.parentGraph, this.edgeMeshConfig);
         this.mesh.metadata = {};
         this.mesh.metadata.parentEdge = this;
     }
@@ -77,7 +70,7 @@ export class Edge {
         return e;
     }
 
-    static defaultEdgeMeshFactory(e: Edge, g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+    static defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         switch (o.type) {
             case "plain":
                 return Edge.createSimpleLine(e, g, o);
@@ -90,21 +83,21 @@ export class Edge {
         }
     }
 
-    static createSimpleLine(_e: Edge, _g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+    static createSimpleLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         return CreateGreasedLine("edge",
             { points: [0, 0, 0, 1, 1, 1] },
             { color: Color3.FromHexString(colorNameToHex(o.color)) },
         );
     }
 
-    static createArrowLine(_e: Edge, _g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+    static createArrowLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         return CreateGreasedLine("edge",
             { points: [0, 0, 0, 1, 1, 1] },
             { color: Color3.FromHexString(colorNameToHex(o.color)) },
         );
     }
 
-    static createMovingLine(_e: Edge, g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+    static createMovingLine(_e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         const baseColor = Color3.FromHexString(colorNameToHex(o.movingLineOpts.baseColor));
         const movingColor = Color3.FromHexString(colorNameToHex(o.color));
         const r1 = Math.floor(baseColor.r * 255);
@@ -152,28 +145,6 @@ export class Edge {
 
         return mesh;
     }
-}
-
-export interface MovingLineOpts {
-    baseColor?: string;
-    width?: number;
-}
-
-export interface EdgeMeshOpts {
-    type?: "plain" | "arrow" | "moving";
-    color?: string;
-    movingLineOpts?: MovingLineOpts;
-    edgeMeshFactory?: EdgeMeshFactory;
-}
-
-const defaultEdgeMeshOpts: Required<EdgeMeshOpts> = {
-    type: "moving",
-    color: "white",
-    movingLineOpts: {
-        baseColor: "lightgrey",
-        width: 0.25,
-    },
-    edgeMeshFactory: Edge.defaultEdgeMeshFactory,
 }
 
 class EdgeMap {

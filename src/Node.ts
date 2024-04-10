@@ -1,17 +1,16 @@
 import { Color3, Mesh, StandardMaterial, MeshBuilder, SixDofDragBehavior, ActionManager, ExecuteCodeAction, DynamicTexture } from "@babylonjs/core";
 // import { AdvancedDynamicTexture } from "@babylonjs/gui";
+import { colorNameToHex } from "./util";
 import type { Graph } from "./Graph";
-import { colorNameToHex } from "./util"
+import type { NodeMeshConfig } from "./Config";
 
 const GOLDEN_RATIO = 1.618;
 
 export type NodeIdType = string | number;
 
-export type NodeMeshFactory = typeof Node.defaultNodeMeshFactory;
-
 interface NodeOpts {
     metadata?: object;
-    nodeMeshOpts?: NodeMeshOpts;
+    nodeMeshConfig?: NodeMeshConfig;
     pinOnDrag?: boolean;
 }
 
@@ -23,7 +22,7 @@ export class Node {
     label?: Mesh;
     meshDragBehavior: SixDofDragBehavior;
     dragging = false;
-    nodeMeshOpts: Required<NodeMeshOpts>;
+    nodeMeshConfig: NodeMeshConfig;
     pinOnDrag: boolean;
 
     constructor(graph: Graph, nodeId: NodeIdType, opts: NodeOpts = {}) {
@@ -32,23 +31,18 @@ export class Node {
         this.metadata = opts.metadata ?? {};
 
         // copy nodeMeshOpts
-        let tmp = {};
-        for (let k of Object.keys(defaultNodeMeshOpts)) {
-            // @ts-ignore
-            tmp[k] = opts?.nodeMeshOpts?.[k] ?? defaultNodeMeshOpts[k];
-        }
-        // @ts-ignore
-        this.nodeMeshOpts = tmp;
+        this.nodeMeshConfig = this.parentGraph.config.nodeMeshOpts;
+
 
         // create graph node
         this.parentGraph.graphEngine.addNode(this);
 
         // create mesh
-        this.mesh = this.nodeMeshOpts.nodeMeshFactory(this, this.parentGraph, this.nodeMeshOpts);
+        this.mesh = this.nodeMeshConfig.nodeMeshFactory(this, this.parentGraph, this.nodeMeshConfig);
         this.mesh.metadata = { parentNode: this };
 
         // create label
-        if (opts?.nodeMeshOpts?.label) {
+        if (this.nodeMeshConfig.label) {
             this.label = Node.createLabel(this.id.toString(), this, this.parentGraph);
             this.label.parent = this.mesh;
             this.label.position.y += 1;
@@ -182,7 +176,7 @@ export class Node {
         return n;
     }
 
-    static defaultNodeMeshFactory(n: Node, g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static defaultNodeMeshFactory(n: Node, g: Graph, o: NodeMeshConfig): Mesh {
         let mesh: Mesh
 
         // create mesh shape
@@ -295,7 +289,7 @@ export class Node {
 
         // create mesh texture
         let mat = new StandardMaterial('defaultMaterial');
-        let nodeColor = o.color ?? defaultNodeMeshOpts.color;
+        let nodeColor = o.color;
         mat.diffuseColor = Color3.FromHexString(colorNameToHex(nodeColor));
         mesh.material = mat;
         mat.wireframe = o.wireframe;
@@ -303,47 +297,47 @@ export class Node {
         return mesh;
     }
 
-    static createBox(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createBox(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateBox("box", { size: o.size });
     }
 
-    static createSphere(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createSphere(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateSphere("sphere", { diameter: o.size });
     }
 
-    static createCylinder(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createCylinder(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateCylinder("cylinder", { height: o.size * GOLDEN_RATIO, diameter: o.size });
     }
 
-    static createCone(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createCone(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateCylinder("cylinder", { height: o.size * GOLDEN_RATIO, diameterTop: 0, diameterBottom: o.size });
     }
 
-    static createCapsule(_n: Node, _g: Graph, _o: Required<NodeMeshOpts>): Mesh {
+    static createCapsule(_n: Node, _g: Graph, _o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateCapsule("capsule", {});
     }
 
-    static createTorus(_n: Node, _g: Graph, _o: Required<NodeMeshOpts>): Mesh {
+    static createTorus(_n: Node, _g: Graph, _o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateTorus("torus", {});
     }
 
-    static createTorusKnot(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createTorusKnot(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateTorusKnot("tk", { radius: o.size * 0.3, tube: o.size * 0.2, radialSegments: 128 });
     }
 
-    static createPolyhedron(type: number, _n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createPolyhedron(type: number, _n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreatePolyhedron("polyhedron", { size: o.size, type });
     }
 
-    static createGoldberg(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createGoldberg(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateGoldberg("goldberg", { size: o.size });
     }
 
-    static createIcoSphere(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createIcoSphere(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateIcoSphere("icosphere", { radius: o.size });
     }
 
-    static createGeodesic(_n: Node, _g: Graph, o: Required<NodeMeshOpts>): Mesh {
+    static createGeodesic(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
         return MeshBuilder.CreateGeodesic("geodesic", { size: o.size });
     }
 
@@ -417,26 +411,6 @@ export class Node {
         return plane;
     }
 }
-
-export interface NodeMeshOpts {
-    size?: number;
-    opacity?: number;
-    wireframe?: boolean;
-    color?: string;
-    shape?: "box" | "sphere" | "cylinder" | "cone" | "capsule" | "torus" | "torus-knot" | "tetrahedron" | "octahedron" | "dodecahedron" | "icosahedron" | "rhombicuboctahedron" | "triangular_prism" | "pentagonal_prism" | "hexagonal_prism" | "square_pyramid" | "pentagonal_pyramid" | "triangular_dipyramid" | "pentagonal_dipyramid" | "elongated_square_dypyramid" | "elongated_pentagonal_dipyramid" | "elongated_pentagonal_cupola" | "goldberg" | "icosphere" | "geodesic";
-    nodeMeshFactory?: NodeMeshFactory;
-    label?: boolean;
-}
-
-const defaultNodeMeshOpts: Required<NodeMeshOpts> = {
-    size: 1,
-    opacity: 1,
-    wireframe: false,
-    color: "lightgrey",
-    shape: "icosphere",
-    nodeMeshFactory: Node.defaultNodeMeshFactory,
-    label: true,
-};
 
 type NodeListType = Map<NodeIdType, Node>;
 const globalNodeList: NodeListType = new Map();

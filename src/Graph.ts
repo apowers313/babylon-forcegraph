@@ -1,9 +1,10 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome } from "@babylonjs/core";
-import { NodeIdType, Node, NodeMeshOpts } from "./Node";
-import { Edge, EdgeMeshOpts } from "./Edge";
+import { NodeIdType, Node } from "./Node";
+import { Edge } from "./Edge";
 import { GraphEngine, GraphEngineNames } from "./engine/GraphEngine";
 import { NGraphEngine } from "./engine/NGraphEngine";
 import { D3GraphEngine } from "./engine/D3GraphEngine";
+import { getConfig, GraphConfig, NodeMeshOpts, EdgeMeshOpts } from "./Config";
 
 interface GraphOpts {
     element: string | HTMLElement;
@@ -29,14 +30,13 @@ type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
 type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
 
 export class Graph {
+    config: GraphConfig;
     element: HTMLElement;
     canvas: HTMLCanvasElement;
     engine: Engine;
     scene: Scene;
     camera: Camera;
     graphEngine: GraphEngine;
-    nodeMeshOpts: NodeMeshOpts;
-    edgeMeshOpts: EdgeMeshOpts;
     running = true;
     skybox?: string;
     pinOnDrag?: boolean;
@@ -46,21 +46,21 @@ export class Graph {
     minDelta = 0.02;
 
     constructor(opts: GraphOpts) {
+        this.config = getConfig(opts);
+
         // configure graph
-        this.pinOnDrag = opts.pinOnDrag ?? true;
-        this.fetchNodes = opts.fetchNodes;
-        this.fetchEdges = opts.fetchEdges;
-        this.graphEngineType = opts.graphEngineType ?? "ngraph";
+        this.fetchNodes = this.config.fetchNodes;
+        this.fetchEdges = this.config.fetchEdges;
 
         // get the element that we are going to use for placing our canvas
-        if (typeof (opts.element) == "string") {
-            let e = document.getElementById(opts.element);
+        if (typeof (this.config.element) == "string") {
+            let e = document.getElementById(this.config.element);
             if (!e) {
-                throw new Error(`getElementById() could not find element '${opts.element}'`);
+                throw new Error(`getElementById() could not find element '${this.config.element}'`);
             }
             this.element = e;
-        } else if (opts.element instanceof HTMLElement) {
-            this.element = opts.element;
+        } else if (this.config.element instanceof HTMLElement) {
+            this.element = this.config.element;
         } else {
             throw new TypeError("Graph constructor requires 'element' argument that is either a string specifying the ID of the HTML element or an HTMLElement");
         }
@@ -83,10 +83,10 @@ export class Graph {
         new HemisphericLight("light", new Vector3(1, 1, 0));
 
         // setup PhotoDome Skybox
-        if (opts.skybox) {
+        if (this.config.skybox) {
             new PhotoDome(
                 "testdome",
-                opts.skybox,
+                this.config.skybox,
                 {
                     resolution: 32,
                     size: 1000
@@ -96,17 +96,13 @@ export class Graph {
         }
 
         // setup force directed graph engine
-        if (this.graphEngineType === "ngraph") {
+        if (this.config.graphEngineType === "ngraph") {
             this.graphEngine = new NGraphEngine();
-        } else if (this.graphEngineType === "d3") {
+        } else if (this.config.graphEngineType === "d3") {
             this.graphEngine = new D3GraphEngine();
         } else {
             throw new TypeError(`Unknown graph engine type: '${this.graphEngineType}'`);
         }
-
-        // configure styling
-        this.nodeMeshOpts = opts.nodeMeshOpts ?? {};
-        this.edgeMeshOpts = opts.edgeMeshOpts ?? {};
     }
 
     async init() {
@@ -149,7 +145,7 @@ export class Graph {
         }
 
         if (maxDelta < this.minDelta) {
-            console.log("graph engine settled, stopping");
+            console.log("Graph engine settled, stopping.");
             this.running = false;
         }
     }
@@ -157,7 +153,7 @@ export class Graph {
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
         // console.log(`adding node: ${nodeId}`);
         return Node.create(this, nodeId, {
-            nodeMeshOpts: this.nodeMeshOpts,
+            nodeMeshConfig: this.config.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
             metadata,
         });
@@ -166,7 +162,7 @@ export class Graph {
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
         // console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
         return Edge.create(this, srcNodeId, dstNodeId, {
-            edgeMeshOpts: this.edgeMeshOpts,
+            edgeMeshConfig: this.config.edgeMeshOpts,
             metadata,
         });
     }

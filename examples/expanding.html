@@ -52,7 +52,7 @@
             return new Set(nodeArray);
         }
 
-        const g = new Graph({ element: "forceGraph", fetchEdges, fetchNodes });
+        const g = new Graph({ element: document.getElementById("forceGraph"), fetchEdges, fetchNodes });
 
         const firstNode = data.nodes[64]; // 64 = "Bossuet", because it's an interesting node
         g.addNode(firstNode.id, firstNode);
