@@ -1,28 +1,9 @@
-import { GreasedLineBaseMesh, CreateGreasedLine, Color3 } from "@babylonjs/core";
+import { GreasedLineBaseMesh, CreateGreasedLine, Color3, RawTexture, Engine, GreasedLineMeshColorMode, StandardMaterial } from "@babylonjs/core";
 import type { Graph } from "./Graph";
 import { Node, NodeIdType } from "./Node";
-import { colorNameToHex } from "./util"
+import { colorNameToHex, DeepRequired } from "./util"
 
-export interface EdgeMeshOpts {
-    color?: string;
-    edgeMeshFactory?: EdgeMeshFactory;
-}
-
-const defaultEdgeMeshOpts: Required<EdgeMeshOpts> = {
-    color: "white",
-    edgeMeshFactory: defaultEdgeMeshFactory,
-}
-
-function defaultEdgeMeshFactory(_e: Edge, _g: Graph, o: EdgeMeshOpts): GreasedLineBaseMesh {
-    let edgeColor = o.color ?? defaultEdgeMeshOpts.color;
-
-    return CreateGreasedLine("edge",
-        { points: [0, 0, 0, 1, 1, 1] },
-        { color: Color3.FromHexString(colorNameToHex(edgeColor)) },
-    );
-}
-
-export type EdgeMeshFactory = typeof defaultEdgeMeshFactory;
+export type EdgeMeshFactory = typeof Edge.defaultEdgeMeshFactory;
 
 interface EdgeOpts {
     metadata?: object;
@@ -35,7 +16,7 @@ export class Edge {
     dstId: NodeIdType;
     metadata: object;
     mesh: GreasedLineBaseMesh;
-    edgeMeshOpts: Required<EdgeMeshOpts>;
+    edgeMeshOpts: DeepRequired<EdgeMeshOpts>;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -95,6 +76,104 @@ export class Edge {
 
         return e;
     }
+
+    static defaultEdgeMeshFactory(e: Edge, g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+        switch (o.type) {
+            case "plain":
+                return Edge.createSimpleLine(e, g, o);
+            case "arrow":
+                return Edge.createArrowLine(e, g, o);
+            case "moving":
+                return Edge.createMovingLine(e, g, o);
+            default:
+                throw new TypeError(`Unknown Edge type: '${o.type}'`)
+        }
+    }
+
+    static createSimpleLine(_e: Edge, _g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+        return CreateGreasedLine("edge",
+            { points: [0, 0, 0, 1, 1, 1] },
+            { color: Color3.FromHexString(colorNameToHex(o.color)) },
+        );
+    }
+
+    static createArrowLine(_e: Edge, _g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+        return CreateGreasedLine("edge",
+            { points: [0, 0, 0, 1, 1, 1] },
+            { color: Color3.FromHexString(colorNameToHex(o.color)) },
+        );
+    }
+
+    static createMovingLine(_e: Edge, g: Graph, o: DeepRequired<EdgeMeshOpts>): GreasedLineBaseMesh {
+        const baseColor = Color3.FromHexString(colorNameToHex(o.movingLineOpts.baseColor));
+        const movingColor = Color3.FromHexString(colorNameToHex(o.color));
+        const r1 = Math.floor(baseColor.r * 255);
+        const g1 = Math.floor(baseColor.g * 255);
+        const b1 = Math.floor(baseColor.b * 255);
+        const r2 = Math.floor(movingColor.r * 255);
+        const g2 = Math.floor(movingColor.g * 255);
+        const b2 = Math.floor(movingColor.b * 255);
+
+        const textureColors = new Uint8Array([r1, g1, b1, r2, g2, b2])
+        const texture = new RawTexture(
+            textureColors, // data
+            textureColors.length / 3, // width
+            1, // height
+            Engine.TEXTUREFORMAT_RGB, // format
+            g.scene, // sceneOrEngine
+            false, // generateMipMaps
+            true, // invertY
+            Engine.TEXTURE_NEAREST_NEAREST, // samplingMode
+            // samplingMode
+            // type
+            // creationFlags
+            // useSRGBBuffer
+        );
+        texture.wrapU = RawTexture.WRAP_ADDRESSMODE;
+        texture.name = 'blue-white-texture';
+
+        const mesh = CreateGreasedLine("edge",
+            { points: [0, 0, 0, 1, 1, 1] },
+            {
+                // color: Color3.FromHexString(colorNameToHex(edgeColor))
+                width: o.movingLineOpts.width,
+                colorMode: GreasedLineMeshColorMode.COLOR_MODE_MULTIPLY,
+            },
+        );
+
+        let material = mesh.material as StandardMaterial;
+        material.emissiveTexture = texture;
+        material.disableLighting = true;
+        texture.uScale = 5;
+
+        g.scene.onBeforeRenderObservable.add(() => {
+            texture.uOffset += 0.04 * g.scene.getAnimationRatio()
+        })
+
+        return mesh;
+    }
+}
+
+export interface MovingLineOpts {
+    baseColor?: string;
+    width?: number;
+}
+
+export interface EdgeMeshOpts {
+    type?: "plain" | "arrow" | "moving";
+    color?: string;
+    movingLineOpts?: MovingLineOpts;
+    edgeMeshFactory?: EdgeMeshFactory;
+}
+
+const defaultEdgeMeshOpts: Required<EdgeMeshOpts> = {
+    type: "moving",
+    color: "white",
+    movingLineOpts: {
+        baseColor: "lightgrey",
+        width: 0.25,
+    },
+    edgeMeshFactory: Edge.defaultEdgeMeshFactory,
 }
 
 class EdgeMap {
