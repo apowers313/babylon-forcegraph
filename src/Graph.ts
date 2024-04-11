@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Camera, PhotoDome, Observable } from "@babylonjs/core";
 import { NodeIdType, Node } from "./Node";
 import { Edge } from "./Edge";
 import { GraphEngine, GraphEngineNames } from "./engine/GraphEngine";
@@ -26,26 +26,90 @@ interface EdgeObject {
     target: NodeIdType,
     metadata: object,
 }
+
 type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
 type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
 
+export type EventType =
+    GraphEventType |
+    NodeEventType |
+    EdgeEventType;
+
+export type GraphEventType = GraphEvent["type"];
+export type NodeEventType = NodeEvent["type"];
+export type EdgeEventType = EdgeEvent["type"];
+
+// graph events
+export interface GraphEvent {
+    type: "graph-settled";
+    graph: Graph;
+}
+
+// node events
+export type NodeEvent = NodeGenericEvent | NodeBeforeUpdateEvent | NodeAddEvent;
+
+export interface NodeGenericEvent {
+    type: "node-update-after";
+    node: Node;
+}
+
+export interface NodeBeforeUpdateEvent {
+    type: "node-update-before";
+    node: Node;
+    doUpdate: boolean;
+}
+
+export interface NodeAddEvent {
+    type: "node-add-before",
+    nodeId: NodeIdType,
+    metadata: object,
+}
+
+// edge events
+export type EdgeEvent = EdgeGenericEvent | EdgeBeforeUpdateEvent | EdgeAddEvent;
+
+export interface EdgeGenericEvent {
+    type: "edge-update-after";
+    edge: Edge;
+}
+
+export interface EdgeBeforeUpdateEvent {
+    type: "edge-update-before";
+    edge: Edge;
+    doUpdate: boolean;
+}
+
+export interface EdgeAddEvent {
+    type: "edge-add-before",
+    srcNodeId: NodeIdType,
+    dstNodeId: NodeIdType,
+    metadata: object,
+}
+
 export class Graph {
     config: GraphConfig;
+    // babylon
     element: HTMLElement;
     canvas: HTMLCanvasElement;
     engine: Engine;
     scene: Scene;
     camera: Camera;
+    skybox?: string;
+    // graph engine
+    graphEngineType?: GraphEngineNames;
     graphEngine: GraphEngine;
     running = true;
-    skybox?: string;
     pinOnDrag?: boolean;
+    // graph
     fetchNodes?: FetchNodes;
     fetchEdges?: FetchEdges;
-    graphEngineType?: GraphEngineNames;
-    minDelta = 0.02;
+    minDelta = 0.2;
+    // observeables
+    graphObservable: Observable<GraphEvent> = new Observable();
+    nodeObservable: Observable<NodeEvent> = new Observable();
+    edgeObservable: Observable<EdgeEvent> = new Observable();
 
-    constructor(opts: GraphOpts) {
+    constructor(element: HTMLCanvasElement | string, opts: GraphOpts) {
         this.config = getConfig(opts);
 
         // configure graph
@@ -53,14 +117,14 @@ export class Graph {
         this.fetchEdges = this.config.fetchEdges;
 
         // get the element that we are going to use for placing our canvas
-        if (typeof (this.config.element) == "string") {
-            let e = document.getElementById(this.config.element);
+        if (typeof (element) == "string") {
+            let e = document.getElementById(element);
             if (!e) {
-                throw new Error(`getElementById() could not find element '${this.config.element}'`);
+                throw new Error(`getElementById() could not find element '${element}'`);
             }
             this.element = e;
-        } else if (this.config.element instanceof HTMLElement) {
-            this.element = this.config.element;
+        } else if (element instanceof HTMLElement) {
+            this.element = element;
         } else {
             throw new TypeError("Graph constructor requires 'element' argument that is either a string specifying the ID of the HTML element or an HTMLElement");
         }
@@ -145,13 +209,13 @@ export class Graph {
         }
 
         if (maxDelta < this.minDelta) {
-            console.log("Graph engine settled, stopping.");
+            this.graphObservable.notifyObservers({ type: "graph-settled", graph: this })
             this.running = false;
         }
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        // console.log(`adding node: ${nodeId}`);
+        this.nodeObservable.notifyObservers({ type: "node-add-before", nodeId, metadata })
         return Node.create(this, nodeId, {
             nodeMeshConfig: this.config.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
@@ -160,11 +224,39 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        // console.log(`adding edge: ${srcNodeId} -> ${dstNodeId}`);
+        this.edgeObservable.notifyObservers({ type: "edge-add-before", srcNodeId, dstNodeId, metadata })
         return Edge.create(this, srcNodeId, dstNodeId, {
             edgeMeshConfig: this.config.edgeMeshOpts,
             metadata,
         });
+    }
+
+    addListener(type: EventType, cb: Function): void {
+        switch (type) {
+            case "graph-settled":
+                this.graphObservable.add((e) => {
+                    if (e.type === type) {
+                        cb(e);
+                    }
+                });
+                break;
+            case "node-add-before":
+                this.nodeObservable.add((e) => {
+                    if (e.type === type) {
+                        cb(e);
+                    }
+                });
+                break;
+            case "edge-add-before":
+                this.edgeObservable.add((e) => {
+                    if (e.type === type) {
+                        cb(e);
+                    }
+                });
+                break;
+            default:
+                throw new TypeError(`Unknown listener type in addListener: ${type}`);
+        }
     }
 
     async loadJsonData(url: string, opts: LoadJsonDataOpts = {}): Promise<void> {

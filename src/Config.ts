@@ -43,7 +43,6 @@ export function getConfig(o: GraphOpts): GraphConfig {
 /*** GRAPH TYPES ***/
 
 export interface GraphOpts {
-    element: string | HTMLElement;
     nodeMeshOpts?: NodeMeshOpts;
     edgeMeshOpts?: EdgeMeshOpts;
     skybox?: string;

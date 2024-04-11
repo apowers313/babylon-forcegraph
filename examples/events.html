@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Basic Example</title>
+    <title>Events Example</title>
 
     <style>
         html,
@@ -39,6 +39,18 @@
         import { Graph } from "babylon-forcegraph";
 
         const g = new Graph("forceGraph");
+        g.addListener("graph-settled", (e) => {
+            console.log("EVENT: Graph Settled", e);
+        });
+
+        g.addListener("node-add-before", (e) => {
+            console.log("EVENT: Adding Node", e);
+        });
+
+        g.addListener("edge-add-before", (e) => {
+            console.log("EVENT: Adding Edge", e);
+        });
+
         g.addNode(0);
         g.addNode(1);
         g.addNode(2);

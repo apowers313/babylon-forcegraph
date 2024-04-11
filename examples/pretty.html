@@ -47,8 +47,7 @@
             GlowLayer,
         } from "@babylonjs/core";
 
-        const g = new Graph({
-            element: "forceGraph",
+        const g = new Graph("forceGraph", {
             skybox: "./assets/rolling_hills_equirectangular_skybox.png",
             nodeMeshOpts: {
                 nodeMeshFactory: function nodeMeshFactory(node, graph, opts) {

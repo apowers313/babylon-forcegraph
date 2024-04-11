@@ -59,13 +59,14 @@
         const nodeMeshOpts = {
             shape: randomFromList(["box", "sphere", "cylinder", "cone", "capsule", "torus", "torus-knot", "tetrahedron", "octahedron", "dodecahedron", "icosahedron", "rhombicuboctahedron", "triangular_prism", "pentagonal_prism", "hexagonal_prism", "square_pyramid", "pentagonal_pyramid", "triangular_dipyramid", "pentagonal_dipyramid", "elongated_square_dypyramid", "elongated_pentagonal_dipyramid", "elongated_pentagonal_cupola", "goldberg", "icosphere", "geodesic"]),
             color: randomColor(),
-            wireframe: randomBool(0.05),
+            wireframe: randomBool(0.1),
             opacity: randomFromList([1, 1, 1, 1, 0.5]),
         };
 
         const edgeMeshOpts = {
             color: randomColor(),
-            type: randomFromList(["plain", "arrow", "moving"]),
+            // type: randomFromList(["plain", "arrow", "moving"]),
+            type: "arrow",
             movingLineOpts: {
                 baseColor: randomColor(),
                 width: randomRange(0.1, 0.7),
@@ -75,8 +76,7 @@
         console.log("nodeMeshOpts:", nodeMeshOpts);
         console.log("edgeMeshOpts:", edgeMeshOpts);
 
-        const g = new Graph({
-            element: "forceGraph",
+        const g = new Graph("forceGraph", {
             nodeMeshOpts,
             edgeMeshOpts,
         });

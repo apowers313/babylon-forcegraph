@@ -1,7 +1,7 @@
 import { Color3, Mesh, StandardMaterial, MeshBuilder, SixDofDragBehavior, ActionManager, ExecuteCodeAction, DynamicTexture } from "@babylonjs/core";
 // import { AdvancedDynamicTexture } from "@babylonjs/gui";
 import { colorNameToHex } from "./util";
-import type { Graph } from "./Graph";
+import type { Graph, NodeBeforeUpdateEvent } from "./Graph";
 import type { NodeMeshConfig } from "./Config";
 
 const GOLDEN_RATIO = 1.618;
@@ -143,12 +143,19 @@ export class Node {
             return;
         }
 
-        let pos = this.parentGraph.graphEngine.getNodePosition(this);
-        this.mesh.position.x = pos.x;
-        this.mesh.position.y = pos.y;
-        if (pos.z) {
-            this.mesh.position.z = pos.z;
+        const evt: NodeBeforeUpdateEvent = { type: "node-update-before", node: this, doUpdate: true }
+        this.parentGraph.nodeObservable.notifyObservers(evt)
+
+        if (evt.doUpdate) {
+            let pos = this.parentGraph.graphEngine.getNodePosition(this);
+            this.mesh.position.x = pos.x;
+            this.mesh.position.y = pos.y;
+            if (pos.z) {
+                this.mesh.position.z = pos.z;
+            }
         }
+
+        this.parentGraph.nodeObservable.notifyObservers({ type: "node-update-after", node: this })
     }
 
     pin(): void {
@@ -334,7 +341,7 @@ export class Node {
     }
 
     static createIcoSphere(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
-        return MeshBuilder.CreateIcoSphere("icosphere", { radius: o.size });
+        return MeshBuilder.CreateIcoSphere("icosphere", { radius: o.size * 0.75 });
     }
 
     static createGeodesic(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {

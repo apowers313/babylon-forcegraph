@@ -1,7 +1,16 @@
-import { GreasedLineBaseMesh, CreateGreasedLine, Color3, RawTexture, Engine, GreasedLineMeshColorMode, StandardMaterial } from "@babylonjs/core";
+import {
+    GreasedLineBaseMesh,
+    CreateGreasedLine,
+    Color3,
+    RawTexture,
+    Engine,
+    GreasedLineMeshColorMode,
+    StandardMaterial,
+    Ray,
+} from "@babylonjs/core";
 import { Node, NodeIdType } from "./Node";
 import { colorNameToHex } from "./util";
-import type { Graph } from "./Graph";
+import type { Graph, EdgeBeforeUpdateEvent } from "./Graph";
 import type { EdgeMeshConfig } from "./Config"
 
 interface EdgeOpts {
@@ -13,9 +22,12 @@ export class Edge {
     parentGraph: Graph;
     srcId: NodeIdType;
     dstId: NodeIdType;
+    dstNode: Node;
+    srcNode: Node;
     metadata: object;
     mesh: GreasedLineBaseMesh;
     edgeMeshConfig: EdgeMeshConfig;
+    ray: Ray;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -24,12 +36,19 @@ export class Edge {
         this.metadata = opts.metadata ?? {};
 
         // make sure both srcNode and dstNode already exist
-        if (!Node.list.has(srcNodeId)) {
+        const srcNode = Node.list.get(srcNodeId);
+        if (!srcNode) {
             throw new Error(`Attempting to create edge '${srcNodeId}->${dstNodeId}', Node '${srcNodeId}' hasn't been created yet.`);
         }
-        if (!Node.list.has(dstNodeId)) {
+        const dstNode = Node.list.get(dstNodeId);
+        if (!dstNode) {
             throw new Error(`Attempting to create edge '${srcNodeId}->${dstNodeId}', Node '${dstNodeId}' hasn't been created yet.`);
         }
+        this.srcNode = srcNode;
+        this.dstNode = dstNode;
+
+        // create ray for direction / intercept finding
+        this.ray = new Ray(srcNode.mesh.position, dstNode.mesh.position)
 
         // copy edgeMeshConfig
         this.edgeMeshConfig = this.parentGraph.config.edgeMeshOpts;
@@ -46,12 +65,19 @@ export class Edge {
     update(): void {
         let lnk = this.parentGraph.graphEngine.getEdgePosition(this);
 
-        this.mesh.setPoints([
-            [
-                lnk.src.x, lnk.src.y, lnk.src.z ?? 0,
-                lnk.dst.x, lnk.dst.y, lnk.dst.z ?? 0,
-            ]
-        ]);
+        const evt: EdgeBeforeUpdateEvent = { type: "edge-update-before", edge: this, doUpdate: true }
+        this.parentGraph.edgeObservable.notifyObservers(evt);
+
+        if (evt.doUpdate) {
+            this.mesh.setPoints([
+                [
+                    lnk.src.x, lnk.src.y, lnk.src.z ?? 0,
+                    lnk.dst.x, lnk.dst.y, lnk.dst.z ?? 0,
+                ]
+            ]);
+        }
+
+        this.parentGraph.edgeObservable.notifyObservers({ type: "edge-update-after", edge: this });
     }
 
     static get list(): EdgeMap {
@@ -73,7 +99,7 @@ export class Edge {
     static defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         switch (o.type) {
             case "plain":
-                return Edge.createSimpleLine(e, g, o);
+                return Edge.createPlainLine(e, g, o);
             case "arrow":
                 return Edge.createArrowLine(e, g, o);
             case "moving":
@@ -83,18 +109,57 @@ export class Edge {
         }
     }
 
-    static createSimpleLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
-        return CreateGreasedLine("edge",
+    static createPlainLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+        return CreateGreasedLine("edge-plain",
             { points: [0, 0, 0, 1, 1, 1] },
             { color: Color3.FromHexString(colorNameToHex(o.color)) },
         );
     }
 
-    static createArrowLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
-        return CreateGreasedLine("edge",
-            { points: [0, 0, 0, 1, 1, 1] },
-            { color: Color3.FromHexString(colorNameToHex(o.color)) },
-        );
+    static createArrowLine(e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+        // return CreateGreasedLine("edge-arrow",
+        //     { points: [0, 0, 0, 1, 1, 1] },
+        //     { color: Color3.FromHexString(colorNameToHex(o.color)) },
+        // );
+
+        e.parentGraph.nodeObservable.add(() => {
+            e.ray.position = dstMesh.position
+            e.ray.direction = srcMesh.position.subtract(dstMesh.position)
+
+            const dstHitInfo = ray.intersectsMeshes([dstMesh]);
+            const srcHitInfo = ray.intersectsMeshes([srcMesh]);
+
+            if (dstHitInfo.length && srcHitInfo.length) {
+                const dstPoint = dstHitInfo[0].pickedPoint
+                const srcPoint = srcHitInfo[0].pickedPoint
+                const capLen = 0.1;
+                const fudgeFactor = 3;
+                const reductionVec = dstPoint.clone().normalize().multiplyByFloats(capLen * fudgeFactor, capLen * fudgeFactor, capLen * fudgeFactor);
+                const lineEnd = dstPoint.subtract(reductionVec);
+
+                line1.setPoints([
+                    [lineEnd.x, lineEnd.y, lineEnd.z, srcPoint.x, srcPoint.y, srcPoint.z]
+                ]);
+
+                cap1 = BABYLON.GreasedLineTools.GetArrowCap(
+                    lineEnd, // position
+                    dstMesh.position, // direction
+                    capLen, // length
+                    4, // widthUp
+                    4, // widthDown
+                );
+                BABYLON.CreateGreasedLine(
+                    'lines',
+                    {
+                        points: cap1.points,
+                        widths: cap1.widths,
+                        widthDistribution: BABYLON.GreasedLineMeshWidthDistribution.WIDTH_DISTRIBUTION_START,
+                        instance: line1
+                    },
+                    scene
+                );
+            }
+        });
     }
 
     static createMovingLine(_e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
@@ -125,7 +190,7 @@ export class Edge {
         texture.wrapU = RawTexture.WRAP_ADDRESSMODE;
         texture.name = 'blue-white-texture';
 
-        const mesh = CreateGreasedLine("edge",
+        const mesh = CreateGreasedLine("edge-moving",
             { points: [0, 0, 0, 1, 1, 1] },
             {
                 // color: Color3.FromHexString(colorNameToHex(edgeColor))
