@@ -1,6 +1,6 @@
 // import Ajv, { JSONSchemaType } from "ajv";
 // @ts-ignore
-import xtend from "xtend";
+import defaultsDeep from "lodash.defaultsdeep";
 import type { Graph } from "./Graph";
 import type { GraphEngineNames } from "./engine/GraphEngine";
 import { Node } from "./Node";
@@ -37,7 +37,7 @@ export const defaultGraphOpts: Omit<GraphOpts, "element"> = {
 }
 
 export function getConfig(o: GraphOpts): GraphConfig {
-    return xtend(defaultGraphOpts, o);
+    return defaultsDeep({}, o, defaultGraphOpts);
 }
 
 /*** GRAPH TYPES ***/

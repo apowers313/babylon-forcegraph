@@ -1,5 +1,7 @@
 import {
     GreasedLineBaseMesh,
+    GreasedLineTools,
+    GreasedLineMeshWidthDistribution,
     CreateGreasedLine,
     Color3,
     RawTexture,
@@ -27,7 +29,7 @@ export class Edge {
     metadata: object;
     mesh: GreasedLineBaseMesh;
     edgeMeshConfig: EdgeMeshConfig;
-    ray: Ray;
+    // ray: Ray;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -46,9 +48,6 @@ export class Edge {
         }
         this.srcNode = srcNode;
         this.dstNode = dstNode;
-
-        // create ray for direction / intercept finding
-        this.ray = new Ray(srcNode.mesh.position, dstNode.mesh.position)
 
         // copy edgeMeshConfig
         this.edgeMeshConfig = this.parentGraph.config.edgeMeshOpts;
@@ -117,49 +116,55 @@ export class Edge {
     }
 
     static createArrowLine(e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
-        // return CreateGreasedLine("edge-arrow",
-        //     { points: [0, 0, 0, 1, 1, 1] },
-        //     { color: Color3.FromHexString(colorNameToHex(o.color)) },
-        // );
-
-        e.parentGraph.nodeObservable.add(() => {
-            e.ray.position = dstMesh.position
-            e.ray.direction = srcMesh.position.subtract(dstMesh.position)
+        e.parentGraph.edgeObservable.add((evt) => {
+            (evt as EdgeBeforeUpdateEvent).doUpdate = false;
+            const srcMesh = e.srcNode.mesh;
+            const dstMesh = e.dstNode.mesh;
+            // create ray for direction / intercept finding
+            const ray = new Ray(e.srcNode.mesh.position, e.dstNode.mesh.position);
+            // RayHelper.CreateAndShow(ray, e.parentGraph.scene, Color3.Red());
+            (ray as any).position = dstMesh.position
+            ray.direction = dstMesh.position.subtract(srcMesh.position);
 
             const dstHitInfo = ray.intersectsMeshes([dstMesh]);
             const srcHitInfo = ray.intersectsMeshes([srcMesh]);
 
             if (dstHitInfo.length && srcHitInfo.length) {
-                const dstPoint = dstHitInfo[0].pickedPoint
-                const srcPoint = srcHitInfo[0].pickedPoint
+                const dstPoint = dstHitInfo[0].pickedPoint!;
+                const srcPoint = srcHitInfo[0].pickedPoint!;
                 const capLen = 0.1;
                 const fudgeFactor = 3;
                 const reductionVec = dstPoint.clone().normalize().multiplyByFloats(capLen * fudgeFactor, capLen * fudgeFactor, capLen * fudgeFactor);
                 const lineEnd = dstPoint.subtract(reductionVec);
 
-                line1.setPoints([
+                e.mesh.setPoints([
                     [lineEnd.x, lineEnd.y, lineEnd.z, srcPoint.x, srcPoint.y, srcPoint.z]
                 ]);
 
-                cap1 = BABYLON.GreasedLineTools.GetArrowCap(
+                const cap1 = GreasedLineTools.GetArrowCap(
                     lineEnd, // position
-                    dstMesh.position, // direction
-                    capLen, // length
+                    ray.direction, // direction
+                    capLen / 3, // length
                     4, // widthUp
                     4, // widthDown
                 );
-                BABYLON.CreateGreasedLine(
+                CreateGreasedLine(
                     'lines',
                     {
                         points: cap1.points,
                         widths: cap1.widths,
-                        widthDistribution: BABYLON.GreasedLineMeshWidthDistribution.WIDTH_DISTRIBUTION_START,
-                        instance: line1
+                        widthDistribution: GreasedLineMeshWidthDistribution.WIDTH_DISTRIBUTION_START,
+                        instance: e.mesh
                     },
-                    scene
+                    // e.parentGraph.scene
                 );
             }
         });
+
+        return CreateGreasedLine("edge-arrow",
+            { points: [0, 0, 0, 1, 1, 1] },
+            { color: Color3.FromHexString(colorNameToHex(o.color)) },
+        );
     }
 
     static createMovingLine(_e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
