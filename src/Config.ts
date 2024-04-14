@@ -54,6 +54,7 @@ export interface GraphOpts {
     jsonDataOpts?: LoadJsonDataOpts;
     preSteps?: number;
     stepMultiplier?: number;
+    minDelta?: number;
 }
 
 export type GraphConfig = DeepRequired<GraphOpts>;

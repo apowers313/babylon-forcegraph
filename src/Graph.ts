@@ -244,7 +244,7 @@ export class Graph {
         }
         this.stats.edgeUpdate.endMonitoring();
 
-        if (maxDelta < (this.minDelta * this.config.stepMultiplier)) {
+        if (maxDelta < this.minDelta) {
             console.log("Graph Settled");
             console.log(this.stats.toString());
             this.graphObservable.notifyObservers({ type: "graph-settled", graph: this })
@@ -253,8 +253,14 @@ export class Graph {
     }
 
     get minDelta(): number {
+        if (this.config.minDelta) {
+            return this.config.minDelta;
+        }
+
         const sz = Node.list.size + Edge.list.size;
-        return (sigmoid(sz, 100) - 0.5) * 0.5;
+        let ret = (sigmoid(sz, 100) - 0.5) * 0.5;
+        ret *= this.config.stepMultiplier;
+        return ret;
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
@@ -426,8 +432,13 @@ class Stats {
             statsStr += "\n";
         }
 
-        function appendPerf(name: string, stat: PerfCounter) {
-            statsStr += `${name} (min/avg/last sec/max [total]): ${stat.min.toFixed(2)} / ${stat.average.toFixed(2)} / ${stat.lastSecAverage.toFixed(2)} / ${stat.max.toFixed(2)} [${stat.max.toFixed(2)}] ms\n`;
+        function appendPerf(name: string, stat: PerfCounter, multiplier = 1) {
+            statsStr += `${name} (min/avg/last sec/max [total]): `;
+            statsStr += `${(stat.min * multiplier).toFixed(2)} / `
+            statsStr += `${(stat.average * multiplier).toFixed(2)} / `
+            statsStr += `${(stat.lastSecAverage * multiplier).toFixed(2)} / `
+            statsStr += `${(stat.max * multiplier).toFixed(2)} `
+            statsStr += `[${(stat.total * multiplier).toFixed(2)}] ms\n`;
         }
 
 
@@ -443,7 +454,7 @@ class Stats {
         appendPerf("Edge Update Time", this.edgeUpdate);
 
         statsSection("BabylonJS Performance");
-        appendPerf("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter);
+        appendPerf("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter, 0.000001);
         appendPerf("Shader Time", this.babylonInstrumentation.shaderCompilationTimeCounter);
         appendPerf("Mesh Evaluation Time", this.sceneInstrumentation.activeMeshesEvaluationTimeCounter);
         appendPerf("Render Targets Time", this.sceneInstrumentation.renderTargetsRenderTimeCounter);
@@ -462,6 +473,8 @@ class Stats {
 
     step() {
         this.totalUpdates++;
+        console.log(`Iteration: ${this.totalUpdates}`);
+        console.log(this.toString());
     }
 
     reset() {
