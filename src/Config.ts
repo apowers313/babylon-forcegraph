@@ -16,7 +16,7 @@ export const defaultNodeMeshOpts: NodeMeshConfig = {
     color: "lightgrey",
     shape: "icosphere",
     nodeMeshFactory: Node.defaultNodeMeshFactory,
-    label: true,
+    label: false,
 };
 
 const defaultEdgeMeshOpts: EdgeMeshConfig = {
@@ -29,11 +29,12 @@ const defaultEdgeMeshOpts: EdgeMeshConfig = {
     edgeMeshFactory: Edge.defaultEdgeMeshFactory,
 }
 
-export const defaultGraphOpts: Omit<GraphOpts, "element"> = {
+export const defaultGraphOpts = {
     nodeMeshOpts: defaultNodeMeshOpts,
     edgeMeshOpts: defaultEdgeMeshOpts,
     pinOnDrag: true,
     graphEngineType: "ngraph",
+    stepMultiplier: 1,
 }
 
 export function getConfig(o: GraphOpts): GraphConfig {
@@ -51,6 +52,8 @@ export interface GraphOpts {
     fetchEdges?: FetchEdges;
     graphEngineType?: GraphEngineNames;
     jsonDataOpts?: LoadJsonDataOpts;
+    preSteps?: number;
+    stepMultiplier?: number;
 }
 
 export type GraphConfig = DeepRequired<GraphOpts>;
@@ -68,7 +71,6 @@ export interface LoadJsonDataOpts {
 }
 
 /*** NODE TYPES ***/
-
 export interface NodeObject {
     id: NodeIdType,
     metadata: object,

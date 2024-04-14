@@ -251,6 +251,15 @@ class EdgeMap {
 
         return dstMap.get(dstId);
     }
+
+    get size(): number {
+        let sz = 0;
+        for (let dstMap of this.map.values()) {
+            sz += dstMap.size;
+        }
+
+        return sz;
+    }
 }
 
 const globalEdgeList = new EdgeMap();

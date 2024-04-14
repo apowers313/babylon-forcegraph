@@ -40,7 +40,10 @@
 
         const g = new Graph("forceGraph", {
             nodeMeshOpts: { shape: "box" },
-            lineMeshOpts: { type: "plain" },
+            edgeMeshOpts: { type: "plain" },
+            preSteps: 1000,
+            stepMultiplier: 5,
+            graphEngineType: "d3",
         });
         await g.loadJsonData("./data/blocks.json");
         await g.init();
