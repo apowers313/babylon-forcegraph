@@ -152,7 +152,7 @@ function _e(n) {
 function Tn(n, e) {
   return 1 / (1 + Math.exp(-n / e));
 }
-const Uo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Ro = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   colorMap: En,
   colorNameToHex: _e,
@@ -725,7 +725,7 @@ is considered to be not a multigraph by default (each edge is unique).`
      *
      * @returns link if there is one. null otherwise.
      */
-    hasLink: U,
+    hasLink: R,
     /**
      * Detects whether there is a node with given id
      * 
@@ -744,7 +744,7 @@ is considered to be not a multigraph by default (each edge is unique).`
      *
      * @returns link if there is one; undefined otherwise.
      */
-    getLink: U
+    getLink: R
   };
   return zi(g), b(), g;
   function b() {
@@ -795,7 +795,7 @@ is considered to be not a multigraph by default (each edge is unique).`
   }
   function N(S, P, L) {
     var A = Xe(S, P), K = r.hasOwnProperty(A);
-    if (K || U(S, P)) {
+    if (K || R(S, P)) {
       K || (r[A] = 0);
       var X = "@" + ++r[A];
       A = Xe(S + X, P + X);
@@ -813,7 +813,7 @@ is considered to be not a multigraph by default (each edge is unique).`
     return P ? P.links : null;
   }
   function O(S, P) {
-    return P !== void 0 && (S = U(S, P)), j(S);
+    return P !== void 0 && (S = R(S, P)), j(S);
   }
   function j(S) {
     if (!S || !t.get(S.id))
@@ -822,7 +822,7 @@ is considered to be not a multigraph by default (each edge is unique).`
     var P = m(S.fromId), L = m(S.toId);
     return P && P.links.delete(S), L && L.links.delete(S), d(S, "remove"), l(), !0;
   }
-  function U(S, P) {
+  function R(S, P) {
     if (!(S === void 0 || P === void 0))
       return t.get(Xe(S, P));
   }
@@ -1372,10 +1372,10 @@ function InsertStackElement(node, body) {
 `;
 }
 var Gi = ge.exports, Et = { exports: {} };
-Et.exports = Ri;
+Et.exports = Ui;
 Et.exports.generateFunctionBody = qn;
 const ji = Ce;
-function Ri(n) {
+function Ui(n) {
   let e = qn(n);
   return new Function("bodies", "settings", "random", e);
 }
@@ -1437,7 +1437,7 @@ function qn(n) {
   }
 `;
 }
-var Ui = Et.exports, Tt = { exports: {} };
+var Ri = Et.exports, Tt = { exports: {} };
 const Hi = Ce;
 Tt.exports = Qi;
 Tt.exports.generateCreateDragForceFunctionBody = Dn;
@@ -1638,7 +1638,7 @@ function na() {
   }
   return Se.exports;
 }
-var Rn = fa, ra = qi, ia = Gi, aa = Ui, oa = Vi, sa = Ki, ua = Zi, gn = {};
+var Un = fa, ra = qi, ia = Gi, aa = Ri, oa = Vi, sa = Ki, ua = Zi, gn = {};
 function fa(n) {
   var e = ea(), t = ta(), r = Mt;
   if (n) {
@@ -1708,7 +1708,7 @@ function fa(n) {
     }, gn[a] = i;
   }
   var u = i.Body, d = i.createQuadTree, s = i.createBounds, f = i.createDragForce, l = i.createSpringForce, g = i.integrate, b = (x) => new u(x), y = na().random(42), v = [], w = [], m = d(n, y), c = s(v, n, y), M = l(n, y), E = f(n), N = 0, _ = [], T = /* @__PURE__ */ new Map(), z = 0;
-  U("nbody", ue), U("spring", C);
+  R("nbody", ue), R("spring", C);
   var O = {
     /**
      * Array of bodies, registered with current simulator
@@ -1732,7 +1732,7 @@ function fa(n) {
     /**
      * Adds a new force to simulation
      */
-    addForce: U,
+    addForce: R,
     /**
      * Removes a force from the simulation.
      */
@@ -1851,7 +1851,7 @@ function fa(n) {
   function j() {
     return c.update(), c.box;
   }
-  function U(x, $) {
+  function R(x, $) {
     if (T.has(x))
       throw new Error("Force " + x + " is already added");
     T.set(x, $), _.push($);
@@ -1897,12 +1897,12 @@ function da(n, e, t) {
   }
 }
 Nt.exports = la;
-Nt.exports.simulator = Rn;
+Nt.exports.simulator = Un;
 var ca = Mt;
 function la(n, e) {
   if (!n)
     throw new Error("Graph structure cannot be undefined");
-  var t = e && e.createSimulator || Rn, r = t(e);
+  var t = e && e.createSimulator || Un, r = t(e);
   if (Array.isArray(e))
     throw new Error("Physics settings is expected to be an object");
   var i = n.version > 19 ? ue : G;
@@ -2075,7 +2075,7 @@ function la(n, e) {
         var re = O($);
         Q = r.getBestNewBodyPosition(re);
       }
-      x = r.addBodyAt(Q), x.id = C, a.set(C, x), j(C), U($) && (x.isPinned = !0);
+      x = r.addBodyAt(Q), x.id = C, a.set(C, x), j(C), R($) && (x.isPinned = !0);
     }
   }
   function _(C) {
@@ -2109,7 +2109,7 @@ function la(n, e) {
     if (x.mass = i(C), Number.isNaN(x.mass))
       throw new Error("Node mass should be a number");
   }
-  function U(C) {
+  function R(C) {
     return C && (C.isPinned || C.data && C.data.isPinned);
   }
   function H(C) {
@@ -2224,9 +2224,9 @@ function ma(n, e, t) {
 }
 function ba(n) {
   const e = +this._x.call(null, n);
-  return Un(this.cover(e), e, n);
+  return Rn(this.cover(e), e, n);
 }
-function Un(n, e, t) {
+function Rn(n, e, t) {
   if (isNaN(e))
     return n;
   var r, i = n._root, a = { data: t }, u = n._x0, d = n._x1, s, f, l, g, b;
@@ -2252,7 +2252,7 @@ function wa(n) {
     return this;
   this.cover(r).cover(i);
   for (let a = 0; a < e; ++a)
-    Un(this, t[a], n[a]);
+    Rn(this, t[a], n[a]);
   return this;
 }
 function xa(n) {
@@ -2536,7 +2536,7 @@ function ja() {
       while (e = e.next);
   }), n;
 }
-function Ra(n) {
+function Ua(n) {
   var e = [], t, r = this._root, i, a, u, d, s;
   for (r && e.push(new Z(r, this._x0, this._y0, this._x1, this._y1)); t = e.pop(); )
     if (!n(r = t.node, a = t.x0, u = t.y0, d = t.x1, s = t.y1) && r.length) {
@@ -2545,7 +2545,7 @@ function Ra(n) {
     }
   return this;
 }
-function Ua(n) {
+function Ra(n) {
   var e = [], t = [], r;
   for (this._root && e.push(new Z(this._root, this._x0, this._y0, this._x1, this._y1)); r = e.pop(); ) {
     var i = r.node;
@@ -2605,8 +2605,8 @@ ee.remove = qa;
 ee.removeAll = Da;
 ee.root = Ga;
 ee.size = ja;
-ee.visit = Ra;
-ee.visitAfter = Ua;
+ee.visit = Ua;
+ee.visitAfter = Ra;
 ee.x = Qa;
 ee.y = Wa;
 function Xa(n) {
@@ -2692,27 +2692,27 @@ function Ya() {
 function Za(n) {
   return arguments.length ? this.cover(+n[0][0], +n[0][1], +n[0][2]).cover(+n[1][0], +n[1][1], +n[1][2]) : isNaN(this._x0) ? void 0 : [[this._x0, this._y0, this._z0], [this._x1, this._y1, this._z1]];
 }
-function R(n, e, t, r, i, a, u) {
+function U(n, e, t, r, i, a, u) {
   this.node = n, this.x0 = e, this.y0 = t, this.z0 = r, this.x1 = i, this.y1 = a, this.z1 = u;
 }
 function eo(n, e, t, r) {
   var i, a = this._x0, u = this._y0, d = this._z0, s, f, l, g, b, y, v = this._x1, w = this._y1, m = this._z1, c = [], M = this._root, E, N;
-  for (M && c.push(new R(M, a, u, d, v, w, m)), r == null ? r = 1 / 0 : (a = n - r, u = e - r, d = t - r, v = n + r, w = e + r, m = t + r, r *= r); E = c.pop(); )
+  for (M && c.push(new U(M, a, u, d, v, w, m)), r == null ? r = 1 / 0 : (a = n - r, u = e - r, d = t - r, v = n + r, w = e + r, m = t + r, r *= r); E = c.pop(); )
     if (!(!(M = E.node) || (s = E.x0) > v || (f = E.y0) > w || (l = E.z0) > m || (g = E.x1) < a || (b = E.y1) < u || (y = E.z1) < d))
       if (M.length) {
         var _ = (s + g) / 2, T = (f + b) / 2, z = (l + y) / 2;
         c.push(
-          new R(M[7], _, T, z, g, b, y),
-          new R(M[6], s, T, z, _, b, y),
-          new R(M[5], _, f, z, g, T, y),
-          new R(M[4], s, f, z, _, T, y),
-          new R(M[3], _, T, l, g, b, z),
-          new R(M[2], s, T, l, _, b, z),
-          new R(M[1], _, f, l, g, T, z),
-          new R(M[0], s, f, l, _, T, z)
+          new U(M[7], _, T, z, g, b, y),
+          new U(M[6], s, T, z, _, b, y),
+          new U(M[5], _, f, z, g, T, y),
+          new U(M[4], s, f, z, _, T, y),
+          new U(M[3], _, T, l, g, b, z),
+          new U(M[2], s, T, l, _, b, z),
+          new U(M[1], _, f, l, g, T, z),
+          new U(M[0], s, f, l, _, T, z)
         ), (N = (t >= z) << 2 | (e >= T) << 1 | n >= _) && (E = c[c.length - 1], c[c.length - 1] = c[c.length - 1 - N], c[c.length - 1 - N] = E);
       } else {
-        var O = n - +this._x.call(null, M.data), j = e - +this._y.call(null, M.data), U = t - +this._z.call(null, M.data), H = O * O + j * j + U * U;
+        var O = n - +this._x.call(null, M.data), j = e - +this._y.call(null, M.data), R = t - +this._z.call(null, M.data), H = O * O + j * j + R * R;
         if (H < r) {
           var G = Math.sqrt(r = H);
           a = n - G, u = e - G, d = t - G, v = n + G, w = e + G, m = t + G, i = M.data;
@@ -2758,20 +2758,20 @@ function io() {
 }
 function ao(n) {
   var e = [], t, r = this._root, i, a, u, d, s, f, l;
-  for (r && e.push(new R(r, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1)); t = e.pop(); )
+  for (r && e.push(new U(r, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1)); t = e.pop(); )
     if (!n(r = t.node, a = t.x0, u = t.y0, d = t.z0, s = t.x1, f = t.y1, l = t.z1) && r.length) {
       var g = (a + s) / 2, b = (u + f) / 2, y = (d + l) / 2;
-      (i = r[7]) && e.push(new R(i, g, b, y, s, f, l)), (i = r[6]) && e.push(new R(i, a, b, y, g, f, l)), (i = r[5]) && e.push(new R(i, g, u, y, s, b, l)), (i = r[4]) && e.push(new R(i, a, u, y, g, b, l)), (i = r[3]) && e.push(new R(i, g, b, d, s, f, y)), (i = r[2]) && e.push(new R(i, a, b, d, g, f, y)), (i = r[1]) && e.push(new R(i, g, u, d, s, b, y)), (i = r[0]) && e.push(new R(i, a, u, d, g, b, y));
+      (i = r[7]) && e.push(new U(i, g, b, y, s, f, l)), (i = r[6]) && e.push(new U(i, a, b, y, g, f, l)), (i = r[5]) && e.push(new U(i, g, u, y, s, b, l)), (i = r[4]) && e.push(new U(i, a, u, y, g, b, l)), (i = r[3]) && e.push(new U(i, g, b, d, s, f, y)), (i = r[2]) && e.push(new U(i, a, b, d, g, f, y)), (i = r[1]) && e.push(new U(i, g, u, d, s, b, y)), (i = r[0]) && e.push(new U(i, a, u, d, g, b, y));
     }
   return this;
 }
 function oo(n) {
   var e = [], t = [], r;
-  for (this._root && e.push(new R(this._root, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1)); r = e.pop(); ) {
+  for (this._root && e.push(new U(this._root, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1)); r = e.pop(); ) {
     var i = r.node;
     if (i.length) {
       var a, u = r.x0, d = r.y0, s = r.z0, f = r.x1, l = r.y1, g = r.z1, b = (u + f) / 2, y = (d + l) / 2, v = (s + g) / 2;
-      (a = i[0]) && e.push(new R(a, u, d, s, b, y, v)), (a = i[1]) && e.push(new R(a, b, d, s, f, y, v)), (a = i[2]) && e.push(new R(a, u, y, s, b, l, v)), (a = i[3]) && e.push(new R(a, b, y, s, f, l, v)), (a = i[4]) && e.push(new R(a, u, d, v, b, y, g)), (a = i[5]) && e.push(new R(a, b, d, v, f, y, g)), (a = i[6]) && e.push(new R(a, u, y, v, b, l, g)), (a = i[7]) && e.push(new R(a, b, y, v, f, l, g));
+      (a = i[0]) && e.push(new U(a, u, d, s, b, y, v)), (a = i[1]) && e.push(new U(a, b, d, s, f, y, v)), (a = i[2]) && e.push(new U(a, u, y, s, b, l, v)), (a = i[3]) && e.push(new U(a, b, y, s, f, l, v)), (a = i[4]) && e.push(new U(a, u, d, v, b, y, g)), (a = i[5]) && e.push(new U(a, b, d, v, f, y, g)), (a = i[6]) && e.push(new U(a, u, y, v, b, l, g)), (a = i[7]) && e.push(new U(a, b, y, v, f, l, g));
     }
     t.push(r);
   }
@@ -2861,8 +2861,8 @@ function go(n) {
   }
   function y(c) {
     for (var M = 0, E = n.length; M < g; ++M)
-      for (var N = 0, _, T, z, O = 0, j = 0, U = 0, H, G; N < E; ++N)
-        _ = n[N], T = _.source, z = _.target, O = z.x + z.vx - T.x - T.vx || ce(l), d > 1 && (j = z.y + z.vy - T.y - T.vy || ce(l)), d > 2 && (U = z.z + z.vz - T.z - T.vz || ce(l)), H = Math.sqrt(O * O + j * j + U * U), H = (H - a[N]) / H * c * r[N], O *= H, j *= H, U *= H, z.vx -= O * (G = f[N]), d > 1 && (z.vy -= j * G), d > 2 && (z.vz -= U * G), T.vx += O * (G = 1 - G), d > 1 && (T.vy += j * G), d > 2 && (T.vz += U * G);
+      for (var N = 0, _, T, z, O = 0, j = 0, R = 0, H, G; N < E; ++N)
+        _ = n[N], T = _.source, z = _.target, O = z.x + z.vx - T.x - T.vx || ce(l), d > 1 && (j = z.y + z.vy - T.y - T.vy || ce(l)), d > 2 && (R = z.z + z.vz - T.z - T.vz || ce(l)), H = Math.sqrt(O * O + j * j + R * R), H = (H - a[N]) / H * c * r[N], O *= H, j *= H, R *= H, z.vx -= O * (G = f[N]), d > 1 && (z.vy -= j * G), d > 2 && (z.vz -= R * G), T.vx += O * (G = 1 - G), d > 1 && (T.vy += j * G), d > 2 && (T.vz += R * G);
   }
   function v() {
     if (u) {
@@ -3112,9 +3112,9 @@ function So(n, e) {
       return arguments.length > 1 ? (M == null ? f.delete(c) : f.set(c, m(M)), r) : f.get(c);
     },
     find: function() {
-      var c = Array.prototype.slice.call(arguments), M = c.shift() || 0, E = (t > 1 ? c.shift() : null) || 0, N = (t > 2 ? c.shift() : null) || 0, _ = c.shift() || 1 / 0, T = 0, z = n.length, O, j, U, H, G, ue;
+      var c = Array.prototype.slice.call(arguments), M = c.shift() || 0, E = (t > 1 ? c.shift() : null) || 0, N = (t > 2 ? c.shift() : null) || 0, _ = c.shift() || 1 / 0, T = 0, z = n.length, O, j, R, H, G, ue;
       for (_ *= _, T = 0; T < z; ++T)
-        G = n[T], O = M - G.x, j = E - (G.y || 0), U = N - (G.z || 0), H = O * O + j * j + U * U, H < _ && (ue = G, _ = H);
+        G = n[T], O = M - G.x, j = E - (G.y || 0), R = N - (G.z || 0), H = O * O + j * j + R * R, H < _ && (ue = G, _ = H);
       return ue;
     },
     on: function(c, M) {
@@ -3295,8 +3295,8 @@ class zo {
 var Ze = { exports: {} };
 Ze.exports;
 (function(n, e) {
-  var t = 200, r = "__lodash_hash_undefined__", i = 800, a = 16, u = 9007199254740991, d = "[object Arguments]", s = "[object Array]", f = "[object AsyncFunction]", l = "[object Boolean]", g = "[object Date]", b = "[object Error]", y = "[object Function]", v = "[object GeneratorFunction]", w = "[object Map]", m = "[object Number]", c = "[object Null]", M = "[object Object]", E = "[object Proxy]", N = "[object RegExp]", _ = "[object Set]", T = "[object String]", z = "[object Undefined]", O = "[object WeakMap]", j = "[object ArrayBuffer]", U = "[object DataView]", H = "[object Float32Array]", G = "[object Float64Array]", ue = "[object Int8Array]", C = "[object Int16Array]", x = "[object Int32Array]", $ = "[object Uint8Array]", Q = "[object Uint8ClampedArray]", re = "[object Uint16Array]", oe = "[object Uint32Array]", S = /[\\^$.*+?()[\]{}|]/g, P = /^\[object .+?Constructor\]$/, L = /^(?:0|[1-9]\d*)$/, A = {};
-  A[H] = A[G] = A[ue] = A[C] = A[x] = A[$] = A[Q] = A[re] = A[oe] = !0, A[d] = A[s] = A[j] = A[l] = A[U] = A[g] = A[b] = A[y] = A[w] = A[m] = A[M] = A[N] = A[_] = A[T] = A[O] = !1;
+  var t = 200, r = "__lodash_hash_undefined__", i = 800, a = 16, u = 9007199254740991, d = "[object Arguments]", s = "[object Array]", f = "[object AsyncFunction]", l = "[object Boolean]", g = "[object Date]", b = "[object Error]", y = "[object Function]", v = "[object GeneratorFunction]", w = "[object Map]", m = "[object Number]", c = "[object Null]", M = "[object Object]", E = "[object Proxy]", N = "[object RegExp]", _ = "[object Set]", T = "[object String]", z = "[object Undefined]", O = "[object WeakMap]", j = "[object ArrayBuffer]", R = "[object DataView]", H = "[object Float32Array]", G = "[object Float64Array]", ue = "[object Int8Array]", C = "[object Int16Array]", x = "[object Int32Array]", $ = "[object Uint8Array]", Q = "[object Uint8ClampedArray]", re = "[object Uint16Array]", oe = "[object Uint32Array]", S = /[\\^$.*+?()[\]{}|]/g, P = /^\[object .+?Constructor\]$/, L = /^(?:0|[1-9]\d*)$/, A = {};
+  A[H] = A[G] = A[ue] = A[C] = A[x] = A[$] = A[Q] = A[re] = A[oe] = !0, A[d] = A[s] = A[j] = A[l] = A[R] = A[g] = A[b] = A[y] = A[w] = A[m] = A[M] = A[N] = A[_] = A[T] = A[O] = !1;
   var K = typeof We == "object" && We && We.Object === Object && We, X = typeof self == "object" && self && self.Object === Object && self, J = K || X || Function("return this")(), Fe = e && !e.nodeType && e, Ee = Fe && !0 && n && !n.nodeType && n, zt = Ee && Ee.exports === Fe, tt = zt && K.process, At = function() {
     try {
       var o = Ee && Ee.require && Ee.require("util").types;
@@ -3340,20 +3340,20 @@ Ze.exports;
     return o ? "Symbol(src)_1." + o : "";
   }(), kt = ke.toString, sr = qe.call(Object), ur = RegExp(
     "^" + qe.call(fe).replace(S, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
-  ), De = zt ? J.Buffer : void 0, qt = J.Symbol, Dt = J.Uint8Array, Gt = De ? De.allocUnsafe : void 0, jt = ir(Object.getPrototypeOf, Object), Rt = Object.create, fr = ke.propertyIsEnumerable, hr = ar.splice, ve = qt ? qt.toStringTag : void 0, Ge = function() {
+  ), De = zt ? J.Buffer : void 0, qt = J.Symbol, Dt = J.Uint8Array, Gt = De ? De.allocUnsafe : void 0, jt = ir(Object.getPrototypeOf, Object), Ut = Object.create, fr = ke.propertyIsEnumerable, hr = ar.splice, ve = qt ? qt.toStringTag : void 0, Ge = function() {
     try {
       var o = ot(Object, "defineProperty");
       return o({}, "", {}), o;
     } catch {
     }
-  }(), dr = De ? De.isBuffer : void 0, Ut = Math.max, cr = Date.now, Ht = ot(J, "Map"), Te = ot(Object, "create"), lr = /* @__PURE__ */ function() {
+  }(), dr = De ? De.isBuffer : void 0, Rt = Math.max, cr = Date.now, Ht = ot(J, "Map"), Te = ot(Object, "create"), lr = /* @__PURE__ */ function() {
     function o() {
     }
     return function(h) {
       if (!de(h))
         return {};
-      if (Rt)
-        return Rt(h);
+      if (Ut)
+        return Ut(h);
       o.prototype = h;
       var p = new o();
       return o.prototype = void 0, p;
@@ -3434,17 +3434,17 @@ Ze.exports;
     };
   }
   function Cr(o) {
-    var h = Ue(this, o).delete(o);
+    var h = Re(this, o).delete(o);
     return this.size -= h ? 1 : 0, h;
   }
   function Er(o) {
-    return Ue(this, o).get(o);
+    return Re(this, o).get(o);
   }
   function Tr(o) {
-    return Ue(this, o).has(o);
+    return Re(this, o).has(o);
   }
   function $r(o, h) {
-    var p = Ue(this, o), B = p.size;
+    var p = Re(this, o), B = p.size;
     return p.set(o, h), this.size += p.size == B ? 0 : 1, this;
   }
   be.prototype.clear = Nr, be.prototype.delete = Cr, be.prototype.get = Er, be.prototype.has = Tr, be.prototype.set = $r;
@@ -3508,11 +3508,11 @@ Ze.exports;
     }) : o[h] = p;
   }
   var Lr = Wr();
-  function Re(o) {
+  function Ue(o) {
     return o == null ? o === void 0 ? z : c : ve && ve in Object(o) ? Xr(o) : ti(o);
   }
   function Qt(o) {
-    return $e(o) && Re(o) == d;
+    return $e(o) && Ue(o) == d;
   }
   function Fr(o) {
     if (!de(o) || Zr(o))
@@ -3521,7 +3521,7 @@ Ze.exports;
     return h.test(ai(o));
   }
   function kr(o) {
-    return $e(o) && Yt(o.length) && !!A[Re(o)];
+    return $e(o) && Yt(o.length) && !!A[Ue(o)];
   }
   function qr(o) {
     if (!de(o))
@@ -3550,7 +3550,7 @@ Ze.exports;
     var ne = q ? q(k, W, p + "", o, h, V) : void 0, Be = ne === void 0;
     if (Be) {
       var ct = ft(W), lt = !ct && Jt(W), nn = !ct && !lt && Zt(W);
-      ne = W, ct || lt || nn ? ft(k) ? ne = k : oi(k) ? ne = Hr(k) : lt ? (Be = !1, ne = jr(W, !0)) : nn ? (Be = !1, ne = Ur(W, !0)) : ne = [] : si(W) || ut(W) ? (ne = k, ut(k) ? ne = ui(k) : (!de(k) || dt(k)) && (ne = Kr(W))) : Be = !1;
+      ne = W, ct || lt || nn ? ft(k) ? ne = k : oi(k) ? ne = Hr(k) : lt ? (Be = !1, ne = jr(W, !0)) : nn ? (Be = !1, ne = Rr(W, !0)) : ne = [] : si(W) || ut(W) ? (ne = k, ut(k) ? ne = ui(k) : (!de(k) || dt(k)) && (ne = Kr(W))) : Be = !1;
     }
     Be && (V.set(W, ne), F(ne, W, B, q, V), V.delete(W)), rt(o, p, ne);
   }
@@ -3571,12 +3571,12 @@ Ze.exports;
     var p = o.length, B = Gt ? Gt(p) : new o.constructor(p);
     return o.copy(B), B;
   }
-  function Rr(o) {
+  function Ur(o) {
     var h = new o.constructor(o.byteLength);
     return new Dt(h).set(new Dt(o)), h;
   }
-  function Ur(o, h) {
-    var p = h ? Rr(o.buffer) : o.buffer;
+  function Rr(o, h) {
+    var p = h ? Ur(o.buffer) : o.buffer;
     return new o.constructor(p, o.byteOffset, o.length);
   }
   function Hr(o, h) {
@@ -3617,7 +3617,7 @@ Ze.exports;
   function Wt(o, h, p, B, F, q) {
     return de(o) && de(h) && (q.set(h, o), at(o, h, void 0, Wt, q), q.delete(h)), o;
   }
-  function Ue(o, h) {
+  function Re(o, h) {
     var p = o.__data__;
     return Yr(h) ? p[typeof h == "string" ? "string" : "hash"] : p.map;
   }
@@ -3670,8 +3670,8 @@ Ze.exports;
     return kt.call(o);
   }
   function ni(o, h, p) {
-    return h = Ut(h === void 0 ? o.length - 1 : h, 0), function() {
-      for (var B = arguments, F = -1, q = Ut(B.length - h, 0), V = Array(q); ++F < q; )
+    return h = Rt(h === void 0 ? o.length - 1 : h, 0), function() {
+      for (var B = arguments, F = -1, q = Rt(B.length - h, 0), V = Array(q); ++F < q; )
         V[F] = B[h + F];
       F = -1;
       for (var k = Array(h + 1); ++F < h; )
@@ -3727,7 +3727,7 @@ Ze.exports;
   function dt(o) {
     if (!de(o))
       return !1;
-    var h = Re(o);
+    var h = Ue(o);
     return h == y || h == v || h == f || h == E;
   }
   function Yt(o) {
@@ -3741,7 +3741,7 @@ Ze.exports;
     return o != null && typeof o == "object";
   }
   function si(o) {
-    if (!$e(o) || Re(o) != M)
+    if (!$e(o) || Ue(o) != M)
       return !1;
     var h = jt(o);
     if (h === null)
@@ -3877,11 +3877,14 @@ class Ho {
     this.stats.nodeUpdate.endMonitoring(), this.stats.edgeUpdate.beginMonitoring();
     for (let t of this.graphEngine.edges)
       t.update();
-    this.stats.edgeUpdate.endMonitoring(), e < this.minDelta * this.config.stepMultiplier && (console.log("Graph Settled"), console.log(this.stats.toString()), this.graphObservable.notifyObservers({ type: "graph-settled", graph: this }), this.running = !1);
+    this.stats.edgeUpdate.endMonitoring(), e < this.minDelta && (console.log("Graph Settled"), console.log(this.stats.toString()), this.graphObservable.notifyObservers({ type: "graph-settled", graph: this }), this.running = !1);
   }
   get minDelta() {
+    if (this.config.minDelta)
+      return this.config.minDelta;
     const e = Me.list.size + se.list.size;
-    return (Tn(e, 100) - 0.5) * 0.5;
+    let t = (Tn(e, 100) - 0.5) * 0.5;
+    return t *= this.config.stepMultiplier, t;
   }
   addNode(e, t = {}) {
     return this.nodeObservable.notifyObservers({ type: "node-add-before", nodeId: e, metadata: t }), Me.create(this, e, {
@@ -3976,14 +3979,14 @@ ${a}
       e += `
 `;
     }
-    function i(a, u) {
-      e += `${a} (min/avg/last sec/max [total]): ${u.min.toFixed(2)} / ${u.average.toFixed(2)} / ${u.lastSecAverage.toFixed(2)} / ${u.max.toFixed(2)} [${u.max.toFixed(2)}] ms
+    function i(a, u, d = 1) {
+      e += `${a} (min/avg/last sec/max [total]): `, e += `${(u.min * d).toFixed(2)} / `, e += `${(u.average * d).toFixed(2)} / `, e += `${(u.lastSecAverage * d).toFixed(2)} / `, e += `${(u.max * d).toFixed(2)} `, e += `[${(u.total * d).toFixed(2)}] ms
 `;
     }
-    return r("Graph"), t("Num Nodes", this.numNodes), t("Num Edges", this.numEdges), t("Total Updates", this.totalUpdates), r("Graph Engine Performance"), i("JSON Load Time", this.loadTime), i("Graph Physics Engine Time", this.graphStep), i("Node Update Time", this.nodeUpdate), i("Edge Update Time", this.edgeUpdate), r("BabylonJS Performance"), i("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter), i("Shader Time", this.babylonInstrumentation.shaderCompilationTimeCounter), i("Mesh Evaluation Time", this.sceneInstrumentation.activeMeshesEvaluationTimeCounter), i("Render Targets Time", this.sceneInstrumentation.renderTargetsRenderTimeCounter), i("Draw Calls Time", this.sceneInstrumentation.drawCallsCounter), i("Frame Time", this.sceneInstrumentation.frameTimeCounter), i("Render Time", this.sceneInstrumentation.renderTimeCounter), i("Time Between Frames", this.sceneInstrumentation.interFrameTimeCounter), i("Camera Render Time", this.sceneInstrumentation.cameraRenderTimeCounter), r("Mesh Cache"), t("Mesh Cache Hits", this.meshCacheHits), t("Mesh Cache Misses", this.meshCacheMisses), e;
+    return r("Graph"), t("Num Nodes", this.numNodes), t("Num Edges", this.numEdges), t("Total Updates", this.totalUpdates), r("Graph Engine Performance"), i("JSON Load Time", this.loadTime), i("Graph Physics Engine Time", this.graphStep), i("Node Update Time", this.nodeUpdate), i("Edge Update Time", this.edgeUpdate), r("BabylonJS Performance"), i("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter, 1e-6), i("Shader Time", this.babylonInstrumentation.shaderCompilationTimeCounter), i("Mesh Evaluation Time", this.sceneInstrumentation.activeMeshesEvaluationTimeCounter), i("Render Targets Time", this.sceneInstrumentation.renderTargetsRenderTimeCounter), i("Draw Calls Time", this.sceneInstrumentation.drawCallsCounter), i("Frame Time", this.sceneInstrumentation.frameTimeCounter), i("Render Time", this.sceneInstrumentation.renderTimeCounter), i("Time Between Frames", this.sceneInstrumentation.interFrameTimeCounter), i("Camera Render Time", this.sceneInstrumentation.cameraRenderTimeCounter), r("Mesh Cache"), t("Mesh Cache Hits", this.meshCacheHits), t("Mesh Cache Misses", this.meshCacheMisses), e;
   }
   step() {
-    this.totalUpdates++;
+    this.totalUpdates++, console.log(`Iteration: ${this.totalUpdates}`), console.log(this.toString());
   }
   reset() {
     this.totalUpdates = 0;
@@ -4005,5 +4008,5 @@ export {
   se as Edge,
   Ho as Graph,
   Me as Node,
-  Uo as util
+  Ro as util
 };
