@@ -147,12 +147,12 @@ export const colorMap = new Map<string, string>([
 ]);
 
 export function colorNameToHex(colorName: string): string {
-    let ret = colorMap.get(colorName);
+    const ret = colorMap.get(colorName);
     if (ret) {
         return ret;
-    } else {
-        return colorName;
     }
+
+    return colorName;
 }
 
 export function sigmoid(z: number, k: number) {

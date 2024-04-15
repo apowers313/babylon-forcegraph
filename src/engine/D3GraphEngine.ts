@@ -1,47 +1,57 @@
 import {
-    forceSimulation,
-    forceLink,
-    forceManyBody,
-    forceCenter,
-    Node as D3Node,
     Edge as D3Edge,
     InputEdge as D3InputEdge,
+    Node as D3Node,
+    forceCenter,
+    forceLink,
+    forceManyBody,
+    forceSimulation,
 } from "d3-force-3d";
-
-import type { NodeIdType } from "../Node";
+import type {EdgePosition, GraphEngine, Position} from "./GraphEngine";
+import type {Node, NodeIdType} from "../Node";
+import type {Edge} from "../Edge";
 
 interface D3InputNode extends Partial<D3Node> {
     id: NodeIdType;
 }
 
-import type { GraphEngine, Position, EdgePosition } from "./GraphEngine";
-import type { Node } from "../Node";
-import type { Edge } from "../Edge";
-
-function isD3Node(n: any): n is D3Node {
+function isD3Node(n: unknown): n is D3Node {
     if (typeof n === "object" &&
+        n !== null &&
+        "index" in n &&
         typeof n.index === "number" &&
+        "x" in n &&
         typeof n.x === "number" &&
+        "y" in n &&
         typeof n.y === "number" &&
+        "z" in n &&
         typeof n.z === "number" &&
+        "vx" in n &&
         typeof n.vx === "number" &&
+        "vy" in n &&
         typeof n.vy === "number" &&
+        "vz" in n &&
         typeof n.vz === "number") {
         return true;
     }
 
-    return false
+    return false;
 }
 
-function isD3Edge(e: any): e is D3Edge {
+function isD3Edge(e: unknown): e is D3Edge {
     if (typeof e === "object" &&
+        e !== null &&
+        Object.hasOwn(e, "index") &&
+        "index" in e &&
         typeof e.index === "number" &&
+        "source" in e &&
         isD3Node(e.source) &&
+        "target" in e &&
         isD3Node(e.target)) {
         return true;
     }
 
-    return false
+    return false;
 }
 
 export class D3GraphEngine implements GraphEngine {
@@ -77,38 +87,40 @@ export class D3GraphEngine implements GraphEngine {
     refresh(): void {
         if (this.graphNeedsRefresh || this.reheat) {
             // update nodes
-            let nodeList: Array<D3Node | D3InputNode> = [...this.nodeMapping.values()];
-            nodeList = nodeList.concat([...this.newNodeMap.values()]);
+            let nodeList: Array<D3Node | D3InputNode> = [... this.nodeMapping.values()];
+            nodeList = nodeList.concat([... this.newNodeMap.values()]);
             this.d3ForceLayout
                 .alpha(1) // re-heat the simulation
                 .nodes(nodeList)
-                .stop()
+                .stop();
 
             // copy over new nodes
-            for (let entry of this.newNodeMap.entries()) {
-                let n = entry[0];
-                let d3node = entry[1];
+            for (const entry of this.newNodeMap.entries()) {
+                const n = entry[0];
+                const d3node = entry[1];
                 if (!isD3Node(d3node)) {
                     throw new Error("Internal error: Node is not settled as a complete D3 Node");
                 }
+
                 this.nodeMapping.set(n, d3node);
             }
             this.newNodeMap.clear();
 
             // update edges
-            let linkList: Array<D3Edge | D3InputEdge> = [...this.edgeMapping.values()];
-            linkList = linkList.concat([...this.newEdgeMap.values()]);
+            let linkList: Array<D3Edge | D3InputEdge> = [... this.edgeMapping.values()];
+            linkList = linkList.concat([... this.newEdgeMap.values()]);
             this.d3ForceLayout
                 .force("link")
                 .links(linkList);
 
             // copy over new edges
-            for (let entry of this.newEdgeMap.entries()) {
-                let e = entry[0];
-                let d3edge = entry[1];
+            for (const entry of this.newEdgeMap.entries()) {
+                const e = entry[0];
+                const d3edge = entry[1];
                 if (!isD3Edge(d3edge)) {
                     throw new Error("Internal error: Edge is not settled as a complete D3 Edge");
                 }
+
                 this.edgeMapping.set(e, d3edge);
             }
             this.newEdgeMap.clear();
@@ -121,7 +133,7 @@ export class D3GraphEngine implements GraphEngine {
     }
 
     addNode(n: Node): void {
-        this.newNodeMap.set(n, { id: n.id });
+        this.newNodeMap.set(n, {id: n.id});
     }
 
     addEdge(e: Edge): void {
@@ -161,7 +173,7 @@ export class D3GraphEngine implements GraphEngine {
     }
 
     getEdgePosition(e: Edge): EdgePosition {
-        let d3edge = this._getMappedEdge(e);
+        const d3edge = this._getMappedEdge(e);
 
         return {
             src: {
@@ -173,8 +185,8 @@ export class D3GraphEngine implements GraphEngine {
                 x: d3edge.target.x,
                 y: d3edge.target.y,
                 z: d3edge.target.z,
-            }
-        }
+            },
+        };
     }
 
     pin(n: Node): void {
@@ -209,7 +221,7 @@ export class D3GraphEngine implements GraphEngine {
     private _getMappedEdge(e: Edge): D3Edge {
         this.refresh(); // ensure consistent state
 
-        let d3edge = this.edgeMapping.get(e);
+        const d3edge = this.edgeMapping.get(e);
         if (!d3edge) {
             throw new Error("Internal error: Edge not found in D3GraphEngine");
         }

@@ -1,13 +1,13 @@
 // import Ajv, { JSONSchemaType } from "ajv";
-// @ts-ignore
+import {DeepRequired} from "./util";
+import {Edge} from "./Edge";
+import type {Graph} from "./Graph";
+import type {GraphEngineNames} from "./engine/GraphEngine";
+import {Node} from "./Node";
+// @ts-expect-error module is missing typescript definitions
 import defaultsDeep from "lodash.defaultsdeep";
-import type { Graph } from "./Graph";
-import type { GraphEngineNames } from "./engine/GraphEngine";
-import { Node } from "./Node";
-import { Edge } from "./Edge";
-import { DeepRequired } from "./util";
 
-/*** DEFAULTS ***/
+/** * DEFAULTS ***/
 
 export const defaultNodeMeshOpts: NodeMeshConfig = {
     size: 1,
@@ -27,7 +27,7 @@ const defaultEdgeMeshOpts: EdgeMeshConfig = {
         width: 0.25,
     },
     edgeMeshFactory: Edge.defaultEdgeMeshFactory,
-}
+};
 
 export const defaultGraphOpts = {
     nodeMeshOpts: defaultNodeMeshOpts,
@@ -35,13 +35,13 @@ export const defaultGraphOpts = {
     pinOnDrag: true,
     graphEngineType: "ngraph",
     stepMultiplier: 1,
-}
+};
 
 export function getConfig(o: GraphOpts): GraphConfig {
     return defaultsDeep({}, o, defaultGraphOpts);
 }
 
-/*** GRAPH TYPES ***/
+/** * GRAPH TYPES ***/
 
 export interface GraphOpts {
     nodeMeshOpts?: NodeMeshOpts;
@@ -71,7 +71,7 @@ export interface LoadJsonDataOpts {
     fetchOpts?: Parameters<typeof fetch>[1];
 }
 
-/*** NODE TYPES ***/
+/** * NODE TYPES ***/
 export interface NodeObject {
     id: NodeIdType,
     metadata: object,
@@ -92,7 +92,7 @@ export interface NodeMeshOpts {
 
 export type NodeMeshConfig = DeepRequired<NodeMeshOpts>;
 
-/*** EDGE TYPES ***/
+/** * EDGE TYPES ***/
 export interface EdgeObject {
     source: NodeIdType,
     target: NodeIdType,

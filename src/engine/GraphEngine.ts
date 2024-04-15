@@ -1,5 +1,5 @@
-import type { Node } from "../Node";
-import type { Edge } from "../Edge";
+import type {Edge} from "../Edge";
+import type {Node} from "../Node";
 
 export type GraphEngineNames = "ngraph" | "d3";
 

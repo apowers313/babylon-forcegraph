@@ -1,9 +1,9 @@
-import createGraph, { Graph as NGraph, Node as NGraphNode, Link as NGraphLink } from "ngraph.graph";
-import ngraphCreateLayout, { Layout as NGraphLayout } from "ngraph.forcelayout";
+import type {EdgePosition, GraphEngine, Position} from "./GraphEngine";
+import createGraph, {Graph as NGraph, Link as NGraphLink, Node as NGraphNode} from "ngraph.graph";
+import ngraphCreateLayout, {Layout as NGraphLayout} from "ngraph.forcelayout";
 
-import type { GraphEngine, Position, EdgePosition } from "./GraphEngine"
-import type { Node } from "../Node";
-import type { Edge } from "../Edge";
+import type {Edge} from "../Edge";
+import type {Node} from "../Node";
 
 export class NGraphEngine implements GraphEngine {
     ngraph: NGraph;
@@ -13,7 +13,7 @@ export class NGraphEngine implements GraphEngine {
 
     constructor() {
         this.ngraph = createGraph();
-        this.ngraphLayout = ngraphCreateLayout(this.ngraph, { dimensions: 3 });
+        this.ngraphLayout = ngraphCreateLayout(this.ngraph, {dimensions: 3});
     }
 
     async init(): Promise<void> { }
@@ -23,12 +23,12 @@ export class NGraphEngine implements GraphEngine {
     }
 
     addNode(n: Node) {
-        const ngraphNode: NGraphNode = this.ngraph.addNode(n.id, { parentNode: n });
+        const ngraphNode: NGraphNode = this.ngraph.addNode(n.id, {parentNode: n});
         this.nodeMapping.set(n, ngraphNode);
     }
 
     addEdge(e: Edge) {
-        const ngraphEdge = this.ngraph.addLink(e.srcId, e.dstId, { parentEdge: this });
+        const ngraphEdge = this.ngraph.addLink(e.srcId, e.dstId, {parentEdge: this});
         this.edgeMapping.set(e, ngraphEdge);
     }
 
@@ -58,8 +58,8 @@ export class NGraphEngine implements GraphEngine {
                 x: pos.to.x,
                 y: pos.to.y,
                 z: pos.to.z,
-            }
-        }
+            },
+        };
     }
 
     get nodes(): Iterable<Node> {

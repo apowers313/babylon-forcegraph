@@ -1,26 +1,25 @@
 import {
-    Engine,
-    Scene,
     ArcRotateCamera,
-    Vector3,
-    HemisphericLight,
     Camera,
-    PhotoDome,
-    Observable,
-    Mesh,
-    InstancedMesh,
-    SceneInstrumentation,
+    Engine,
     EngineInstrumentation,
+    HemisphericLight,
+    InstancedMesh,
+    Mesh,
+    Observable,
     PerfCounter,
+    PhotoDome,
+    Scene,
+    SceneInstrumentation,
+    Vector3,
 } from "@babylonjs/core";
-
-import { NodeIdType, Node } from "./Node";
-import { Edge } from "./Edge";
-import { GraphEngine, GraphEngineNames } from "./engine/GraphEngine";
-import { NGraphEngine } from "./engine/NGraphEngine";
-import { D3GraphEngine } from "./engine/D3GraphEngine";
-import { getConfig, GraphConfig, NodeMeshOpts, EdgeMeshOpts } from "./Config";
-import { sigmoid } from "./util";
+import {EdgeMeshOpts, GraphConfig, NodeMeshOpts, getConfig} from "./Config";
+import {GraphEngine, GraphEngineNames} from "./engine/GraphEngine";
+import {Node, NodeIdType} from "./Node";
+import {D3GraphEngine} from "./engine/D3GraphEngine";
+import {Edge} from "./Edge";
+import {NGraphEngine} from "./engine/NGraphEngine";
+import {sigmoid} from "./util";
 
 interface GraphOpts {
     element: string | HTMLElement;
@@ -50,6 +49,7 @@ export type EventType =
     GraphEventType |
     NodeEventType |
     EdgeEventType;
+type EventCallbackType = (evt: GraphEvent | NodeAddEvent | EdgeEvent) => void | EventType;
 
 export type GraphEventType = GraphEvent["type"];
 export type NodeEventType = NodeEvent["type"];
@@ -135,17 +135,19 @@ export class Graph {
         this.fetchEdges = this.config.fetchEdges;
 
         // get the element that we are going to use for placing our canvas
-        if (typeof (element) == "string") {
-            let e = document.getElementById(element);
+        if (typeof (element) === "string") {
+            const e = document.getElementById(element);
             if (!e) {
                 throw new Error(`getElementById() could not find element '${element}'`);
             }
+
             this.element = e;
         } else if (element instanceof HTMLElement) {
             this.element = element;
         } else {
             throw new TypeError("Graph constructor requires 'element' argument that is either a string specifying the ID of the HTML element or an HTMLElement");
         }
+
         this.element.innerHTML = "";
 
         // get a canvas element for rendering
@@ -171,9 +173,9 @@ export class Graph {
                 this.config.skybox,
                 {
                     resolution: 32,
-                    size: 1000
+                    size: 1000,
                 },
-                this.scene
+                this.scene,
             );
         }
 
@@ -232,14 +234,14 @@ export class Graph {
 
         let maxDelta = 0;
         this.stats.nodeUpdate.beginMonitoring();
-        for (let n of this.graphEngine.nodes) {
+        for (const n of this.graphEngine.nodes) {
             maxDelta = Math.max(maxDelta, n.getDeltaPos());
             n.update();
         }
         this.stats.nodeUpdate.endMonitoring();
 
         this.stats.edgeUpdate.beginMonitoring();
-        for (let e of this.graphEngine.edges) {
+        for (const e of this.graphEngine.edges) {
             e.update();
         }
         this.stats.edgeUpdate.endMonitoring();
@@ -247,7 +249,7 @@ export class Graph {
         if (maxDelta < this.minDelta) {
             console.log("Graph Settled");
             console.log(this.stats.toString());
-            this.graphObservable.notifyObservers({ type: "graph-settled", graph: this })
+            this.graphObservable.notifyObservers({type: "graph-settled", graph: this});
             this.running = false;
         }
     }
@@ -264,7 +266,7 @@ export class Graph {
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
-        this.nodeObservable.notifyObservers({ type: "node-add-before", nodeId, metadata })
+        this.nodeObservable.notifyObservers({type: "node-add-before", nodeId, metadata});
         return Node.create(this, nodeId, {
             nodeMeshConfig: this.config.nodeMeshOpts,
             pinOnDrag: this.pinOnDrag,
@@ -273,38 +275,38 @@ export class Graph {
     }
 
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
-        this.edgeObservable.notifyObservers({ type: "edge-add-before", srcNodeId, dstNodeId, metadata })
+        this.edgeObservable.notifyObservers({type: "edge-add-before", srcNodeId, dstNodeId, metadata});
         return Edge.create(this, srcNodeId, dstNodeId, {
             edgeMeshConfig: this.config.edgeMeshOpts,
             metadata,
         });
     }
 
-    addListener(type: EventType, cb: Function): void {
+    addListener(type: EventType, cb: EventCallbackType): void {
         switch (type) {
-            case "graph-settled":
-                this.graphObservable.add((e) => {
-                    if (e.type === type) {
-                        cb(e);
-                    }
-                });
-                break;
-            case "node-add-before":
-                this.nodeObservable.add((e) => {
-                    if (e.type === type) {
-                        cb(e);
-                    }
-                });
-                break;
-            case "edge-add-before":
-                this.edgeObservable.add((e) => {
-                    if (e.type === type) {
-                        cb(e);
-                    }
-                });
-                break;
-            default:
-                throw new TypeError(`Unknown listener type in addListener: ${type}`);
+        case "graph-settled":
+            this.graphObservable.add((e) => {
+                if (e.type === type) {
+                    cb(e);
+                }
+            });
+            break;
+        case "node-add-before":
+            this.nodeObservable.add((e) => {
+                if (e.type === type) {
+                    cb(e);
+                }
+            });
+            break;
+        case "edge-add-before":
+            this.edgeObservable.add((e) => {
+                if (e.type === type) {
+                    cb(e);
+                }
+            });
+            break;
+        default:
+            throw new TypeError(`Unknown listener type in addListener: ${type}`);
         }
     }
 
@@ -330,22 +332,21 @@ export class Graph {
         }
 
         // iterate nodes adding data
-        for (let n of data[nodeListProp]) {
-            let id = n[nodeIdProp];
-            let metadata = n;
+        for (const n of data[nodeListProp]) {
+            const id = n[nodeIdProp];
+            const metadata = n;
             this.addNode(id, metadata);
         }
 
         // iterate edges adding data
-        for (let e of data[edgeListProp]) {
-            let srcId = e[edgeSrcIdProp];
-            let dstId = e[edgeDstIdProp];
-            let metadata = e
+        for (const e of data[edgeListProp]) {
+            const srcId = e[edgeSrcIdProp];
+            const dstId = e[edgeDstIdProp];
+            const metadata = e;
             this.addEdge(srcId, dstId, metadata);
         }
         this.stats.loadTime.endMonitoring();
     }
-
 }
 
 interface LoadJsonDataOpts {
@@ -357,7 +358,7 @@ interface LoadJsonDataOpts {
     fetchOpts?: Parameters<typeof fetch>[1];
 }
 
-/*** Mesh Cache ***/
+/** * Mesh Cache ***/
 const meshCacheMap: Map<string, Mesh> = new Map();
 
 type MeshCreatorFn = () => Mesh;
@@ -386,7 +387,7 @@ export class MeshCache {
     }
 }
 
-/*** Statistics ***/
+/** * Statistics ***/
 class Stats {
     graph: Graph;
     sceneInstrumentation: SceneInstrumentation;
@@ -434,13 +435,12 @@ class Stats {
 
         function appendPerf(name: string, stat: PerfCounter, multiplier = 1) {
             statsStr += `${name} (min/avg/last sec/max [total]): `;
-            statsStr += `${(stat.min * multiplier).toFixed(2)} / `
-            statsStr += `${(stat.average * multiplier).toFixed(2)} / `
-            statsStr += `${(stat.lastSecAverage * multiplier).toFixed(2)} / `
-            statsStr += `${(stat.max * multiplier).toFixed(2)} `
+            statsStr += `${(stat.min * multiplier).toFixed(2)} / `;
+            statsStr += `${(stat.average * multiplier).toFixed(2)} / `;
+            statsStr += `${(stat.lastSecAverage * multiplier).toFixed(2)} / `;
+            statsStr += `${(stat.max * multiplier).toFixed(2)} `;
             statsStr += `[${(stat.total * multiplier).toFixed(2)}] ms\n`;
         }
-
 
         statsSection("Graph");
         appendStat("Num Nodes", this.numNodes);
