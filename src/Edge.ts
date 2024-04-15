@@ -4,11 +4,12 @@ import {
     Engine,
     GreasedLineBaseMesh,
     GreasedLineMeshColorMode,
-    GreasedLineMeshWidthDistribution,
-    GreasedLineTools,
+    // GreasedLineMeshWidthDistribution,
+    // GreasedLineTools,
     RawTexture,
-    Ray,
+    // Ray,
     StandardMaterial,
+    Vector3,
 } from "@babylonjs/core";
 import type {EdgeBeforeUpdateEvent, Graph} from "./Graph";
 import {Node, NodeIdType} from "./Node";
@@ -20,6 +21,9 @@ interface EdgeOpts {
     edgeMeshConfig?: EdgeMeshConfig;
 }
 
+const edgeLinePoints: Map<Graph, Array<Array<number>>> = new Map();
+const edgeLineMesh: Map<Graph, GreasedLineBaseMesh> = new Map();
+
 export class Edge {
     parentGraph: Graph;
     srcId: NodeIdType;
@@ -27,7 +31,7 @@ export class Edge {
     dstNode: Node;
     srcNode: Node;
     metadata: object;
-    mesh: GreasedLineBaseMesh;
+    // mesh: GreasedLineBaseMesh;
     edgeMeshConfig: EdgeMeshConfig;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
@@ -57,9 +61,9 @@ export class Edge {
         this.parentGraph.graphEngine.addEdge(this);
 
         // create mesh
-        this.mesh = this.edgeMeshConfig.edgeMeshFactory(this, this.parentGraph, this.edgeMeshConfig);
-        this.mesh.metadata = {};
-        this.mesh.metadata.parentEdge = this;
+        // this.mesh = this.edgeMeshConfig.edgeMeshFactory(this, this.parentGraph, this.edgeMeshConfig);
+        // this.mesh.metadata = {};
+        // this.mesh.metadata.parentEdge = this;
     }
 
     update(): void {
@@ -69,15 +73,13 @@ export class Edge {
         this.parentGraph.edgeObservable.notifyObservers(evt);
 
         if (evt.doUpdate) {
-            this.mesh.setPoints([
-                [
-                    lnk.src.x,
-                    lnk.src.y,
-                    lnk.src.z ?? 0,
-                    lnk.dst.x,
-                    lnk.dst.y,
-                    lnk.dst.z ?? 0,
-                ],
+            this.addPoints([
+                lnk.src.x,
+                lnk.src.y,
+                lnk.src.z ?? 0,
+                lnk.dst.x,
+                lnk.dst.y,
+                lnk.dst.z ?? 0,
             ]);
         }
 
@@ -100,82 +102,85 @@ export class Edge {
         return e;
     }
 
-    static defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+    static defaultEdgeMeshFactory(g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         switch (o.type) {
         case "plain":
-            return Edge.createPlainLine(e, g, o);
-        case "arrow":
-            return Edge.createArrowLine(e, g, o);
+            return Edge.createPlainLine(g, o);
+        // case "arrow":
+        //     return Edge.createArrowLine(e, g, o);
         case "moving":
-            return Edge.createMovingLine(e, g, o);
+            return Edge.createMovingLine(g, o);
         default:
             throw new TypeError(`Unknown Edge type: '${o.type}'`);
         }
     }
 
-    static createPlainLine(_e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+    static createPlainLine(_g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         return CreateGreasedLine("edge-plain",
-            {points: [0, 0, 0, 1, 1, 1]},
+            {points: [
+                new Vector3(0, 0, 0),
+                new Vector3(1, 1, 1),
+            ]},
             {color: Color3.FromHexString(colorNameToHex(o.color))},
         );
     }
 
-    static createArrowLine(e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
-        e.parentGraph.edgeObservable.add((evt) => {
-            (evt as EdgeBeforeUpdateEvent).doUpdate = false;
-            const srcMesh = e.srcNode.mesh;
-            const dstMesh = e.dstNode.mesh;
-            // create ray for direction / intercept finding
-            const ray = new Ray(e.srcNode.mesh.position, e.dstNode.mesh.position);
-            // RayHelper.CreateAndShow(ray, e.parentGraph.scene, Color3.Red());
+    // static createArrowLine(e: Edge, _g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+    //     e.parentGraph.edgeObservable.add((evt) => {
+    //         (evt as EdgeBeforeUpdateEvent).doUpdate = false;
+    //         const srcMesh = e.srcNode.mesh;
+    //         const dstMesh = e.dstNode.mesh;
+    //         // create ray for direction / intercept finding
+    //         const ray = new Ray(e.srcNode.mesh.position, e.dstNode.mesh.position);
+    //         // RayHelper.CreateAndShow(ray, e.parentGraph.scene, Color3.Red());
 
-            // XXX: position is missing from Ray TypeScript definition
-            /* eslint-disable  @typescript-eslint/no-explicit-any */
-            (ray as any).position = dstMesh.position;
-            ray.direction = dstMesh.position.subtract(srcMesh.position);
+    //         // XXX: position is missing from Ray TypeScript definition
+    //         /* eslint-disable  @typescript-eslint/no-explicit-any */
+    //         (ray as any).position = dstMesh.position;
+    //         ray.direction = dstMesh.position.subtract(srcMesh.position);
 
-            const dstHitInfo = ray.intersectsMeshes([dstMesh]);
-            const srcHitInfo = ray.intersectsMeshes([srcMesh]);
+    //         const dstHitInfo = ray.intersectsMeshes([dstMesh]);
+    //         const srcHitInfo = ray.intersectsMeshes([srcMesh]);
 
-            if (dstHitInfo.length && srcHitInfo.length) {
-                const dstPoint = dstHitInfo[0].pickedPoint!;
-                const srcPoint = srcHitInfo[0].pickedPoint!;
-                const capLen = 0.1;
-                const fudgeFactor = 3;
-                const reductionVec = dstPoint.clone().normalize().multiplyByFloats(capLen * fudgeFactor, capLen * fudgeFactor, capLen * fudgeFactor);
-                const lineEnd = dstPoint.subtract(reductionVec);
+    //         if (dstHitInfo.length && srcHitInfo.length) {
+    //             const dstPoint = dstHitInfo[0].pickedPoint!;
+    //             const srcPoint = srcHitInfo[0].pickedPoint!;
+    //             const capLen = 0.1;
+    //             const fudgeFactor = 3;
+    //             const reductionVec = dstPoint.clone().normalize().multiplyByFloats(capLen * fudgeFactor, capLen * fudgeFactor, capLen * fudgeFactor);
+    //             const lineEnd = dstPoint.subtract(reductionVec);
 
-                e.mesh.setPoints([
-                    [lineEnd.x, lineEnd.y, lineEnd.z, srcPoint.x, srcPoint.y, srcPoint.z],
-                ]);
+    //             e.mesh.setPoints([
+    //                 [lineEnd.x, lineEnd.y, lineEnd.z, srcPoint.x, srcPoint.y, srcPoint.z],
+    //             ]);
 
-                const cap1 = GreasedLineTools.GetArrowCap(
-                    lineEnd, // position
-                    ray.direction, // direction
-                    capLen / 3, // length
-                    4, // widthUp
-                    4, // widthDown
-                );
-                CreateGreasedLine(
-                    "lines",
-                    {
-                        points: cap1.points,
-                        widths: cap1.widths,
-                        widthDistribution: GreasedLineMeshWidthDistribution.WIDTH_DISTRIBUTION_START,
-                        instance: e.mesh,
-                    },
-                    // e.parentGraph.scene
-                );
-            }
-        });
+    //             const cap1 = GreasedLineTools.GetArrowCap(
+    //                 lineEnd, // position
+    //                 ray.direction, // direction
+    //                 capLen / 3, // length
+    //                 4, // widthUp
+    //                 4, // widthDown
+    //             );
+    //             CreateGreasedLine(
+    //                 "lines",
+    //                 {
+    //                     points: cap1.points,
+    //                     widths: cap1.widths,
+    //                     widthDistribution: GreasedLineMeshWidthDistribution.WIDTH_DISTRIBUTION_START,
+    //                     instance: e.mesh,
+    //                 },
+    //                 // e.parentGraph.scene
+    //             );
+    //         }
+    //     });
 
-        return CreateGreasedLine("edge-arrow",
-            {points: [0, 0, 0, 1, 1, 1]},
-            {color: Color3.FromHexString(colorNameToHex(o.color))},
-        );
-    }
+    //     return CreateGreasedLine("edge-arrow",
+    //         {points: [0, 0, 0, 1, 1, 1]},
+    //         {color: Color3.FromHexString(colorNameToHex(o.color))},
+    //     );
+    // }
 
-    static createMovingLine(_e: Edge, g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
+    static createMovingLine(g: Graph, o: EdgeMeshConfig): GreasedLineBaseMesh {
         const baseColor = Color3.FromHexString(colorNameToHex(o.movingLineOpts.baseColor));
         const movingColor = Color3.FromHexString(colorNameToHex(o.color));
         const r1 = Math.floor(baseColor.r * 255);
@@ -204,7 +209,10 @@ export class Edge {
         texture.name = "blue-white-texture";
 
         const mesh = CreateGreasedLine("edge-moving",
-            {points: [0, 0, 0, 1, 1, 1]},
+            {points: [
+                new Vector3(0, 0, 0),
+                new Vector3(1, 1, 1),
+            ]},
             {
                 // color: Color3.FromHexString(colorNameToHex(edgeColor))
                 width: o.movingLineOpts.width,
@@ -222,6 +230,36 @@ export class Edge {
         });
 
         return mesh;
+    }
+
+    static startUpdate(g: Graph): void {
+        edgeLinePoints.set(g, []);
+    }
+
+    addPoints(pts: Array<number>): void {
+        const ptsList = edgeLinePoints.get(this.parentGraph);
+        if (!ptsList) {
+            throw new Error("Internal Error: couldn't get points list");
+        }
+
+        ptsList.push(pts);
+    }
+
+    static endUpdate(g: Graph): void {
+        let mesh = edgeLineMesh.get(g);
+        if (!mesh) {
+            console.log("creating mesh");
+            mesh = g.config.edgeMeshOpts.edgeMeshFactory(g, g.config.edgeMeshOpts);
+            edgeLineMesh.set(g, mesh);
+        }
+
+        const linePoints = edgeLinePoints.get(g);
+        if (!linePoints) {
+            throw new Error("Internal Error: couldn't get line points");
+        }
+
+        console.log("linePoints", JSON.stringify(linePoints, null, 4));
+        mesh.setPoints(linePoints);
     }
 }
 

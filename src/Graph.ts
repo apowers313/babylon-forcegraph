@@ -241,9 +241,11 @@ export class Graph {
         this.stats.nodeUpdate.endMonitoring();
 
         this.stats.edgeUpdate.beginMonitoring();
+        Edge.startUpdate(this);
         for (const e of this.graphEngine.edges) {
             e.update();
         }
+        Edge.endUpdate(this);
         this.stats.edgeUpdate.endMonitoring();
 
         if (maxDelta < this.minDelta) {
@@ -473,8 +475,8 @@ class Stats {
 
     step() {
         this.totalUpdates++;
-        console.log(`Iteration: ${this.totalUpdates}`);
-        console.log(this.toString());
+        // console.log(`Iteration: ${this.totalUpdates}`);
+        // console.log(this.toString());
     }
 
     reset() {

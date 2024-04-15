@@ -20,7 +20,7 @@ export const defaultNodeMeshOpts: NodeMeshConfig = {
 };
 
 const defaultEdgeMeshOpts: EdgeMeshConfig = {
-    type: "moving",
+    type: "plain",
     color: "white",
     movingLineOpts: {
         baseColor: "lightgrey",
