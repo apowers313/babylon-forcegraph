@@ -20,17 +20,11 @@ export interface GraphEvent {
 }
 
 // node events
-export type NodeEvent = NodeGenericEvent | NodeBeforeUpdateEvent | NodeAddEvent;
+export type NodeEvent = NodeGenericEvent | NodeAddEvent;
 
 export interface NodeGenericEvent {
-    type: "node-update-after";
+    type: "node-update-after" | "node-update-before";
     node: Node;
-}
-
-export interface NodeBeforeUpdateEvent {
-    type: "node-update-before";
-    node: Node;
-    doUpdate: boolean;
 }
 
 export interface NodeAddEvent {
@@ -40,17 +34,11 @@ export interface NodeAddEvent {
 }
 
 // edge events
-export type EdgeEvent = EdgeGenericEvent | EdgeBeforeUpdateEvent | EdgeAddEvent;
+export type EdgeEvent = EdgeGenericEvent | EdgeAddEvent;
 
 export interface EdgeGenericEvent {
-    type: "edge-update-after";
+    type: "edge-update-after" | "edge-update-before";
     edge: Edge;
-}
-
-export interface EdgeBeforeUpdateEvent {
-    type: "edge-update-before";
-    edge: Edge;
-    doUpdate: boolean;
 }
 
 export interface EdgeAddEvent {

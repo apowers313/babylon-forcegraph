@@ -13,7 +13,6 @@ import {
     Vector3,
 } from "@babylonjs/core";
 import {Node, NodeIdType} from "./Node";
-import type {EdgeBeforeUpdateEvent} from "./Events";
 import type {EdgeStyleConfig} from "./Config";
 import type {Graph} from "./Graph";
 import {colorNameToHex} from "./util";
@@ -71,8 +70,7 @@ export class Edge {
     update(): void {
         const lnk = this.parentGraph.graphEngine.getEdgePosition(this);
 
-        const evt: EdgeBeforeUpdateEvent = {type: "edge-update-before", edge: this, doUpdate: true};
-        this.parentGraph.edgeObservable.notifyObservers(evt);
+        this.parentGraph.edgeObservable.notifyObservers({type: "edge-update-before", edge: this});
 
         const {srcPoint, dstPoint} = this.transformArrowCap();
         if (srcPoint && dstPoint) {

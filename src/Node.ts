@@ -10,7 +10,6 @@ import {
     StandardMaterial,
 } from "@babylonjs/core";
 import type {Graph} from "./Graph";
-import type {NodeBeforeUpdateEvent} from "./Events";
 import type {NodeStyleConfig} from "./Config";
 import {colorNameToHex} from "./util";
 
@@ -152,16 +151,13 @@ export class Node {
             return;
         }
 
-        const evt: NodeBeforeUpdateEvent = {type: "node-update-before", node: this, doUpdate: true};
-        this.parentGraph.nodeObservable.notifyObservers(evt);
+        this.parentGraph.nodeObservable.notifyObservers({type: "node-update-before", node: this});
 
-        if (evt.doUpdate) {
-            const pos = this.parentGraph.graphEngine.getNodePosition(this);
-            this.mesh.position.x = pos.x;
-            this.mesh.position.y = pos.y;
-            if (pos.z) {
-                this.mesh.position.z = pos.z;
-            }
+        const pos = this.parentGraph.graphEngine.getNodePosition(this);
+        this.mesh.position.x = pos.x;
+        this.mesh.position.y = pos.y;
+        if (pos.z) {
+            this.mesh.position.z = pos.z;
         }
 
         this.parentGraph.nodeObservable.notifyObservers({type: "node-update-after", node: this});
