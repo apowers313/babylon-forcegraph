@@ -78,7 +78,13 @@ export class Graph {
         // setup babylonjs
         this.engine = new Engine(this.canvas, true); // Generate the BABYLON 3D engine
         this.scene = new Scene(this.engine);
-        this.camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 30, new Vector3(0, 0, 0));
+        this.camera = new ArcRotateCamera(
+            "camera",
+            -Math.PI / 2,
+            Math.PI / 2.5,
+            this.config.style.startingCameraDistance,
+            new Vector3(0, 0, 0),
+        );
         this.camera.attachControl(this.canvas, true);
         new HemisphericLight("light", new Vector3(1, 1, 0));
 

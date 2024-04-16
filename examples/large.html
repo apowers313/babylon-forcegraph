@@ -38,7 +38,11 @@
     <script type="module" async>
         import { Graph } from "babylon-forcegraph";
 
-        const g = new Graph("forceGraph");
+        const g = new Graph("forceGraph", {
+            style: {
+                startingCameraDistance: 1000,
+            }
+        });
 
         g.addListener("graph-settled", (e) => {
             console.log("Graph Settled");

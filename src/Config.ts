@@ -35,6 +35,7 @@ export const defaultGraphOpts: GraphConfig = {
         node: defaultNodeStyleOpts,
         edge: defaultEdgeStyleOpts,
         skybox: "",
+        startingCameraDistance: 30,
     },
     behavior: {
         node: {
@@ -83,6 +84,7 @@ export interface GraphStyleOpts {
     skybox?: string;
     node?: NodeStyleOpts;
     edge?: EdgeStyleOpts;
+    startingCameraDistance: number;
 }
 
 export interface GraphBehaviorOpts {
