@@ -1063,7 +1063,8 @@ const $n = /* @__PURE__ */ Nt(Pi), Ii = {
   style: {
     node: Ii,
     edge: Ai,
-    skybox: ""
+    skybox: "",
+    startingCameraDistance: 30
   },
   behavior: {
     node: {
@@ -3959,7 +3960,13 @@ class Vo {
       this.element = e;
     else
       throw new TypeError("Graph constructor requires 'element' argument that is either a string specifying the ID of the HTML element or an HTMLElement");
-    if (this.element.innerHTML = "", this.canvas = document.createElement("canvas"), this.canvas.setAttribute("id", "babylonForceGraphRenderCanvas"), this.canvas.setAttribute("touch-action", "none"), this.canvas.style.width = "100%", this.canvas.style.height = "100%", this.canvas.style.touchAction = "none", this.element.appendChild(this.canvas), this.engine = new wt(this.canvas, !0), this.scene = new Ni(this.engine), this.camera = new Ci("camera", -Math.PI / 2, Math.PI / 2.5, 30, new ge(0, 0, 0)), this.camera.attachControl(this.canvas, !0), new Ei("light", new ge(1, 1, 0)), this.config.style.skybox && this.config.style.skybox.length && new Ti(
+    if (this.element.innerHTML = "", this.canvas = document.createElement("canvas"), this.canvas.setAttribute("id", "babylonForceGraphRenderCanvas"), this.canvas.setAttribute("touch-action", "none"), this.canvas.style.width = "100%", this.canvas.style.height = "100%", this.canvas.style.touchAction = "none", this.element.appendChild(this.canvas), this.engine = new wt(this.canvas, !0), this.scene = new Ni(this.engine), this.camera = new Ci(
+      "camera",
+      -Math.PI / 2,
+      Math.PI / 2.5,
+      this.config.style.startingCameraDistance,
+      new ge(0, 0, 0)
+    ), this.camera.attachControl(this.canvas, !0), new Ei("light", new ge(1, 1, 0)), this.config.style.skybox && this.config.style.skybox.length && new Ti(
       "testdome",
       this.config.style.skybox,
       {
