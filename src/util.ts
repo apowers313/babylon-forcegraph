@@ -154,7 +154,3 @@ export function colorNameToHex(colorName: string): string {
 
     return colorName;
 }
-
-export function sigmoid(z: number, k: number) {
-    return 1 / (1 + Math.exp(-z / k));
-}

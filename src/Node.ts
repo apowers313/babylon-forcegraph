@@ -137,15 +137,6 @@ export class Node {
         }
     }
 
-    getDeltaPos(): number {
-        const pos = this.parentGraph.graphEngine.getNodePosition(this);
-        const deltaX = Math.abs(this.mesh.position.x - pos.x);
-        const deltaY = Math.abs(this.mesh.position.y - pos.y);
-        const deltaZ = Math.abs(this.mesh.position.z - (pos.z ?? 0));
-
-        return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY) + (deltaZ * deltaZ));
-    }
-
     update(): void {
         if (this.dragging) {
             return;

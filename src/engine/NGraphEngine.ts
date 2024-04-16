@@ -10,6 +10,7 @@ export class NGraphEngine implements GraphEngine {
     ngraphLayout: NGraphLayout<NGraph>;
     nodeMapping: Map<Node, NGraphNode> = new Map();
     edgeMapping: Map<Edge, NGraphLink> = new Map();
+    _settled: boolean = true;
 
     constructor() {
         this.ngraph = createGraph();
@@ -19,17 +20,26 @@ export class NGraphEngine implements GraphEngine {
     async init(): Promise<void> { }
 
     step() {
-        this.ngraphLayout.step();
+        this._settled = this.ngraphLayout.step();
+        // console.log(`this.ngraphLayout.lastMove ${this.ngraphLayout.lastMove}`);
+        // console.log(`this.nodeMapping.size ${this.nodeMapping.size}`);
+        // console.log(`ratio ${this.ngraphLayout.lastMove / this.nodeMapping.size}`);
+    }
+
+    get isSettled(): boolean {
+        return this._settled;
     }
 
     addNode(n: Node) {
         const ngraphNode: NGraphNode = this.ngraph.addNode(n.id, {parentNode: n});
         this.nodeMapping.set(n, ngraphNode);
+        this._settled = false;
     }
 
     addEdge(e: Edge) {
         const ngraphEdge = this.ngraph.addLink(e.srcId, e.dstId, {parentEdge: this});
         this.edgeMapping.set(e, ngraphEdge);
+        this._settled = false;
     }
 
     getNodePosition(n: Node): Position {

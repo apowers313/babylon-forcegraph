@@ -56,7 +56,7 @@ function isD3Edge(e: unknown): e is D3Edge {
 
 export class D3GraphEngine implements GraphEngine {
     d3ForceLayout: ReturnType<typeof forceSimulation>;
-    d3AlphaMin = 0;
+    d3AlphaMin = 0.1;
     d3AlphaTarget = 0;
     d3AlphaDecay = 0.0228;
     d3VelocityDecay = 0.4;
@@ -130,6 +130,11 @@ export class D3GraphEngine implements GraphEngine {
     step(): void {
         this.refresh();
         this.d3ForceLayout.tick();
+    }
+
+    get isSettled(): boolean {
+        console.log(`this.d3ForceLayout.alpha() ${this.d3ForceLayout.alpha()}`);
+        return this.d3ForceLayout.alpha() < this.d3AlphaMin;
     }
 
     addNode(n: Node): void {

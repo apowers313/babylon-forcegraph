@@ -17,7 +17,6 @@ import {Edge} from "./Edge";
 import {MeshCache} from "./MeshCache";
 import {NGraphEngine} from "./engine/NGraphEngine";
 import {Stats} from "./Stats";
-import {sigmoid} from "./util";
 
 export class Graph {
     config: GraphConfig;
@@ -147,10 +146,8 @@ export class Graph {
         }
         this.stats.graphStep.endMonitoring();
 
-        let maxDelta = 0;
         this.stats.nodeUpdate.beginMonitoring();
         for (const n of this.graphEngine.nodes) {
-            maxDelta = Math.max(maxDelta, n.getDeltaPos());
             n.update();
         }
         this.stats.nodeUpdate.endMonitoring();
@@ -161,21 +158,10 @@ export class Graph {
         }
         this.stats.edgeUpdate.endMonitoring();
 
-        if (this.running && maxDelta < this.minDelta) {
+        if (this.graphEngine.isSettled) {
             this.graphObservable.notifyObservers({type: "graph-settled", graph: this});
             this.running = false;
         }
-    }
-
-    get minDelta(): number {
-        if (this.config.engine.minDelta) {
-            return this.config.engine.minDelta;
-        }
-
-        const sz = Node.list.size + Edge.list.size;
-        let ret = (sigmoid(sz, 100) - 0.5) * 0.5;
-        ret *= this.config.engine.stepMultiplier;
-        return ret;
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {

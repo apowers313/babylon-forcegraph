@@ -38,16 +38,12 @@
     <script type="module" async>
         import { Graph } from "babylon-forcegraph";
 
-        const g = new Graph("forceGraph",
-            {
-                // minDelta: 0.4,
-                nodeMeshOpts: { shape: "box" },
-                edgeMeshOpts: { type: "plain" },
-                //     preSteps: 1000,
-                //     stepMultiplier: 5,
-                //     graphEngineType: "d3",
-            }
-        );
+        const g = new Graph("forceGraph");
+
+        g.addListener("graph-settled", (e) => {
+            console.log("Graph Settled");
+            console.log(g.stats.toString());
+        });
 
         await g.loadJsonData("./data/blocks.json", {
             // nodeListProp: "nodes",
