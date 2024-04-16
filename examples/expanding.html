@@ -43,7 +43,14 @@
         function fetchEdges(n, _g) {
             // find all edges with source and target links that match our
             // specified node
-            const edgeArray = data.links.filter((e) => e.source === n.id || e.target === n.id)
+            const edgeArray = data.links.filter((e) => e.source === n.id || e.target === n.id);
+            // rename edge attributes to match expectations
+            edgeArray.forEach((e) => {
+                e.src = e.source;
+                e.dst = e.target;
+                delete e.source;
+                delete e.target;
+            })
             return new Set(edgeArray);
         }
 
@@ -56,6 +63,11 @@
             behavior: {
                 fetchEdges,
                 fetchNodes,
+            },
+            style: {
+                node: {
+                    label: true
+                }
             }
         });
 
