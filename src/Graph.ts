@@ -162,8 +162,6 @@ export class Graph {
         this.stats.edgeUpdate.endMonitoring();
 
         if (this.running && maxDelta < this.minDelta) {
-            console.log("Graph Settled");
-            console.log(this.stats.toString());
             this.graphObservable.notifyObservers({type: "graph-settled", graph: this});
             this.running = false;
         }
