@@ -41,6 +41,7 @@
         const g = new Graph("forceGraph");
         g.addListener("graph-settled", (e) => {
             console.log("EVENT: Graph Settled", e);
+            console.log(g.stats.toString());
         });
 
         g.addListener("node-add-before", (e) => {

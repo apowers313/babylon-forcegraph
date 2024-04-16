@@ -27,7 +27,8 @@ Examples:
 - [Events](https://apowers313.github.io/babylon-forcegraph/examples/events.html)
   ([source](https://github.com/apowers313/babylon-forcegraph/blob/master/examples/pretty.html)):
   Example of catching events from graphs, nodes, and edges. Open up the
-  JavaScript Developer Console to see the `console.log` messages when events are caught.
+  JavaScript Developer Console to see the `console.log` messages when events are
+  caught. Also prints graph statistics when the graph settles.
 - [Large
   Graph](https://apowers313.github.io/babylon-forcegraph/examples/large.html)
   ([source](https://github.com/apowers313/babylon-forcegraph/blob/master/examples/large.html)):
