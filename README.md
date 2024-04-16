@@ -32,4 +32,4 @@ Examples:
 - [Large
   Graph](https://apowers313.github.io/babylon-forcegraph/examples/large.html)
   ([source](https://github.com/apowers313/babylon-forcegraph/blob/master/examples/large.html)):
-  A graph with ~4,000 nodes.
+  A graph with 1238 nodes and 2602 edges.
