@@ -39,7 +39,13 @@
         import { Graph } from "babylon-forcegraph";
 
         const g = new Graph("forceGraph");
-        await g.loadJsonData("./data/miserables.json");
+        await g.loadJsonData("./data/miserables.json", {
+            // nodeListProp: "nodes",
+            edgeListProp: "links",
+            // nodeIdProp: "id",
+            edgeSrcIdProp: "source",
+            edgeDstIdProp: "target",
+        });
         await g.init();
     </script>
 </body>

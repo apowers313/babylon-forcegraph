@@ -48,25 +48,27 @@
         } from "@babylonjs/core";
 
         const g = new Graph("forceGraph", {
-            skybox: "./assets/rolling_hills_equirectangular_skybox.png",
-            nodeMeshOpts: {
-                nodeMeshFactory: function nodeMeshFactory(node, graph, opts) {
-                    const mesh = MeshBuilder.CreateSphere("sphere", { diameter: 4 });
-                    mesh.material = CreateMagic();
-                    mesh.isPickable = true;
-                    mesh.actionManager = new ActionManager(g.scene);
+            style: {
+                skybox: "./assets/rolling_hills_equirectangular_skybox.png",
+                node: {
+                    nodeMeshFactory: function nodeMeshFactory(node, graph, opts) {
+                        const mesh = MeshBuilder.CreateSphere("sphere", { diameter: 4 });
+                        mesh.material = CreateMagic();
+                        mesh.isPickable = true;
+                        mesh.actionManager = new ActionManager(g.scene);
 
-                    //ON MOUSE ENTER
-                    mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, function (ev) {
-                        g.scene.hoverCursor = "pointer";
-                        mesh.material.emissiveIntensity = 3;
-                    }));
+                        //ON MOUSE ENTER
+                        mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, function (ev) {
+                            g.scene.hoverCursor = "pointer";
+                            mesh.material.emissiveIntensity = 3;
+                        }));
 
-                    //ON MOUSE EXIT
-                    mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, function (ev) {
-                        mesh.material.emissiveIntensity = 0.5;
-                    }));
-                    return mesh;
+                        //ON MOUSE EXIT
+                        mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, function (ev) {
+                            mesh.material.emissiveIntensity = 0.5;
+                        }));
+                        return mesh;
+                    }
                 }
             }
         });

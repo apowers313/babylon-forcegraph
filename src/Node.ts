@@ -9,8 +9,9 @@ import {
     SixDofDragBehavior,
     StandardMaterial,
 } from "@babylonjs/core";
-import type {Graph, NodeBeforeUpdateEvent} from "./Graph";
-import type {NodeMeshConfig} from "./Config";
+import type {Graph} from "./Graph";
+import type {NodeBeforeUpdateEvent} from "./Events";
+import type {NodeStyleConfig} from "./Config";
 import {colorNameToHex} from "./util";
 
 const GOLDEN_RATIO = 1.618;
@@ -19,7 +20,7 @@ export type NodeIdType = string | number;
 
 interface NodeOpts {
     metadata?: object;
-    nodeMeshConfig?: NodeMeshConfig;
+    nodeMeshConfig?: NodeStyleConfig;
     pinOnDrag?: boolean;
 }
 
@@ -31,7 +32,7 @@ export class Node {
     label?: Mesh;
     meshDragBehavior: SixDofDragBehavior;
     dragging = false;
-    nodeMeshConfig: NodeMeshConfig;
+    nodeMeshConfig: NodeStyleConfig;
     pinOnDrag: boolean;
 
     constructor(graph: Graph, nodeId: NodeIdType, opts: NodeOpts = {}) {
@@ -40,7 +41,7 @@ export class Node {
         this.metadata = opts.metadata ?? {};
 
         // copy nodeMeshOpts
-        this.nodeMeshConfig = this.parentGraph.config.nodeMeshOpts;
+        this.nodeMeshConfig = this.parentGraph.config.style.node;
 
         // create graph node
         this.parentGraph.graphEngine.addNode(this);
@@ -95,7 +96,7 @@ export class Node {
         // https://forum.babylonjs.com/t/expandable-lines/24681/12
 
         // click behavior
-        this.mesh.actionManager = new ActionManager(this.parentGraph.scene);
+        this.mesh.actionManager = this.mesh.actionManager ?? new ActionManager(this.parentGraph.scene);
         // ActionManager.OnDoublePickTrigger
         // ActionManager.OnRightPickTrigger
         // ActionManager.OnCenterPickTrigger
@@ -118,8 +119,8 @@ export class Node {
                         // create set of unique node ids
                         const nodeIds: Set<NodeIdType> = new Set();
                         edges.forEach((e) => {
-                            nodeIds.add(e.source);
-                            nodeIds.add(e.target);
+                            nodeIds.add(e.src);
+                            nodeIds.add(e.dst);
                         });
                         nodeIds.delete(this.id);
 
@@ -128,7 +129,7 @@ export class Node {
 
                         // add all the nodes and edges we collected
                         nodes.forEach((n) => this.parentGraph.addNode(n.id, n.metadata));
-                        edges.forEach((e) => this.parentGraph.addEdge(e.source, e.target, e.metadata));
+                        edges.forEach((e) => this.parentGraph.addEdge(e.src, e.dst, e.metadata));
 
                         // TODO: fetch and add secondary edges
                     },
@@ -191,7 +192,7 @@ export class Node {
         return n;
     }
 
-    static defaultNodeMeshFactory(n: Node, g: Graph, o: NodeMeshConfig): AbstractMesh {
+    static defaultNodeMeshFactory(n: Node, g: Graph, o: NodeStyleConfig): AbstractMesh {
         return g.meshCache.get("default-mesh", () => {
             let mesh: Mesh;
 
@@ -317,49 +318,49 @@ export class Node {
         });
     }
 
-    static createBox(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createBox(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateBox("box", {size: o.size});
     }
 
-    static createSphere(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createSphere(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateSphere("sphere", {diameter: o.size});
     }
 
-    static createCylinder(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createCylinder(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateCylinder("cylinder", {height: o.size * GOLDEN_RATIO, diameter: o.size});
     }
 
-    static createCone(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createCone(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateCylinder("cylinder", {height: o.size * GOLDEN_RATIO, diameterTop: 0, diameterBottom: o.size});
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    static createCapsule(_n: Node, _g: Graph, _o: NodeMeshConfig): Mesh {
+    static createCapsule(_n: Node, _g: Graph, _o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateCapsule("capsule", {});
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    static createTorus(_n: Node, _g: Graph, _o: NodeMeshConfig): Mesh {
+    static createTorus(_n: Node, _g: Graph, _o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateTorus("torus", {});
     }
 
-    static createTorusKnot(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createTorusKnot(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateTorusKnot("tk", {radius: o.size * 0.3, tube: o.size * 0.2, radialSegments: 128});
     }
 
-    static createPolyhedron(type: number, _n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createPolyhedron(type: number, _n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreatePolyhedron("polyhedron", {size: o.size, type});
     }
 
-    static createGoldberg(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createGoldberg(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateGoldberg("goldberg", {size: o.size});
     }
 
-    static createIcoSphere(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createIcoSphere(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateIcoSphere("icosphere", {radius: o.size * 0.75});
     }
 
-    static createGeodesic(_n: Node, _g: Graph, o: NodeMeshConfig): Mesh {
+    static createGeodesic(_n: Node, _g: Graph, o: NodeStyleConfig): Mesh {
         return MeshBuilder.CreateGeodesic("geodesic", {size: o.size});
     }
 

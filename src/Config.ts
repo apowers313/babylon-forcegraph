@@ -9,7 +9,7 @@ import defaultsDeep from "lodash.defaultsdeep";
 
 /** * DEFAULTS ***/
 
-export const defaultNodeMeshOpts: NodeMeshConfig = {
+export const defaultNodeStyleOpts: NodeStyleConfig = {
     size: 1,
     opacity: 1,
     wireframe: false,
@@ -19,9 +19,10 @@ export const defaultNodeMeshOpts: NodeMeshConfig = {
     label: false,
 };
 
-const defaultEdgeMeshOpts: EdgeMeshConfig = {
+export const defaultEdgeStyleOpts: EdgeStyleConfig = {
     type: "moving",
     color: "white",
+    arrowCap: false,
     movingLineOpts: {
         baseColor: "lightgrey",
         width: 0.25,
@@ -29,12 +30,25 @@ const defaultEdgeMeshOpts: EdgeMeshConfig = {
     edgeMeshFactory: Edge.defaultEdgeMeshFactory,
 };
 
-export const defaultGraphOpts = {
-    nodeMeshOpts: defaultNodeMeshOpts,
-    edgeMeshOpts: defaultEdgeMeshOpts,
-    pinOnDrag: true,
-    graphEngineType: "ngraph",
-    stepMultiplier: 1,
+export const defaultGraphOpts: GraphConfig = {
+    style: {
+        node: defaultNodeStyleOpts,
+        edge: defaultEdgeStyleOpts,
+        skybox: "",
+    },
+    behavior: {
+        node: {
+            pinOnDrag: true,
+        },
+        fetchNodes: () => new Set(),
+        fetchEdges: () => new Set(),
+    },
+    engine: {
+        type: "ngraph",
+        stepMultiplier: 1,
+        preSteps: 0,
+        minDelta: 0,
+    },
 };
 
 export function getConfig(o: GraphOpts): GraphConfig {
@@ -44,31 +58,44 @@ export function getConfig(o: GraphOpts): GraphConfig {
 /** * GRAPH TYPES ***/
 
 export interface GraphOpts {
-    nodeMeshOpts?: NodeMeshOpts;
-    edgeMeshOpts?: EdgeMeshOpts;
-    skybox?: string;
-    pinOnDrag?: boolean;
-    fetchNodes?: FetchNodes;
-    fetchEdges?: FetchEdges;
-    graphEngineType?: GraphEngineNames;
-    jsonDataOpts?: LoadJsonDataOpts;
-    preSteps?: number;
-    stepMultiplier?: number;
-    minDelta?: number;
+    style: GraphStyleOpts,
+    behavior: GraphBehaviorOpts,
+    engine: GraphEngineOpts,
 }
 
 export type GraphConfig = DeepRequired<GraphOpts>;
 
-type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
-type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
+export interface NodeObject {
+    id: NodeIdType,
+    metadata: object,
+}
 
-export interface LoadJsonDataOpts {
-    nodeListProp?: string;
-    edgeListProp?: string;
-    nodeIdProp?: string;
-    edgeSrcIdProp?: string;
-    edgeDstIdProp?: string;
-    fetchOpts?: Parameters<typeof fetch>[1];
+export interface EdgeObject {
+    src: NodeIdType,
+    dst: NodeIdType,
+    metadata: object,
+}
+
+export type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
+export type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
+
+export interface GraphStyleOpts {
+    skybox?: string;
+    node?: NodeStyleOpts;
+    edge?: EdgeStyleOpts;
+}
+
+export interface GraphBehaviorOpts {
+    node?: NodeBehaviorOpts;
+    fetchNodes?: FetchNodes;
+    fetchEdges?: FetchEdges;
+}
+
+export interface GraphEngineOpts {
+    type?: GraphEngineNames,
+    preSteps?: number,
+    stepMultiplier?: number,
+    minDelta?: number,
 }
 
 /** * NODE TYPES ***/
@@ -80,7 +107,7 @@ export interface NodeObject {
 export type NodeIdType = string | number;
 export type NodeMeshFactory = typeof Node.defaultNodeMeshFactory;
 
-export interface NodeMeshOpts {
+export interface NodeStyleOpts {
     size?: number;
     opacity?: number;
     wireframe?: boolean;
@@ -90,7 +117,11 @@ export interface NodeMeshOpts {
     label?: boolean;
 }
 
-export type NodeMeshConfig = DeepRequired<NodeMeshOpts>;
+export interface NodeBehaviorOpts {
+    pinOnDrag: boolean;
+}
+
+export type NodeStyleConfig = DeepRequired<NodeStyleOpts>;
 
 /** * EDGE TYPES ***/
 export interface EdgeObject {
@@ -104,15 +135,41 @@ export interface MovingLineOpts {
     width?: number;
 }
 
-export interface EdgeMeshOpts {
-    type?: "plain" | "arrow" | "moving";
+export interface EdgeStyleOpts {
+    type?: "plain" | "moving";
+    arrowCap?: boolean;
     color?: string;
     movingLineOpts?: MovingLineOpts;
     edgeMeshFactory?: EdgeMeshFactory;
 }
 
-export type EdgeMeshConfig = DeepRequired<EdgeMeshOpts>;
+export type EdgeStyleConfig = DeepRequired<EdgeStyleOpts>;
 export type EdgeMeshFactory = typeof Edge.defaultEdgeMeshFactory;
+
+/** * DATA LOADING TYPES ***/
+
+const defaultJsonDataOpts = {
+    nodeListProp: "nodes",
+    edgeListProp: "edges",
+    nodeIdProp: "id",
+    edgeSrcIdProp: "src",
+    edgeDstIdProp: "dst",
+};
+
+export interface LoadJsonDataOpts {
+    nodeListProp?: string;
+    edgeListProp?: string;
+    nodeIdProp?: string;
+    edgeSrcIdProp?: string;
+    edgeDstIdProp?: string;
+    fetchOpts?: Parameters<typeof fetch>[1];
+}
+
+type LoadJsonDataConfig = DeepRequired<LoadJsonDataOpts>;
+
+export function getJsonDataOpts(o: LoadJsonDataOpts): LoadJsonDataConfig {
+    return defaultsDeep({}, o, defaultJsonDataOpts);
+}
 
 // export const configSchema: JSONSchemaType<GraphOpts> = {
 //     // const configSchema = {

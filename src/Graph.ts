@@ -2,105 +2,22 @@ import {
     ArcRotateCamera,
     Camera,
     Engine,
-    EngineInstrumentation,
     HemisphericLight,
-    InstancedMesh,
-    Mesh,
     Observable,
-    PerfCounter,
     PhotoDome,
     Scene,
-    SceneInstrumentation,
     Vector3,
 } from "@babylonjs/core";
-import {EdgeMeshOpts, GraphConfig, NodeMeshOpts, getConfig} from "./Config";
+import {EdgeEvent, EventCallbackType, EventType, GraphEvent, NodeEvent} from "./Events";
+import {FetchEdges, FetchNodes, GraphConfig, GraphOpts, getConfig, getJsonDataOpts} from "./Config";
 import {GraphEngine, GraphEngineNames} from "./engine/GraphEngine";
 import {Node, NodeIdType} from "./Node";
 import {D3GraphEngine} from "./engine/D3GraphEngine";
 import {Edge} from "./Edge";
+import {MeshCache} from "./MeshCache";
 import {NGraphEngine} from "./engine/NGraphEngine";
+import {Stats} from "./Stats";
 import {sigmoid} from "./util";
-
-interface GraphOpts {
-    element: string | HTMLElement;
-    nodeMeshOpts?: NodeMeshOpts;
-    edgeMeshOpts?: EdgeMeshOpts;
-    skybox?: string;
-    pinOnDrag?: boolean;
-    fetchNodes?: FetchNodes;
-    fetchEdges?: FetchEdges;
-    graphEngineType?: GraphEngineNames;
-}
-
-interface NodeObject {
-    id: NodeIdType,
-    metadata: object,
-}
-interface EdgeObject {
-    source: NodeIdType,
-    target: NodeIdType,
-    metadata: object,
-}
-
-type FetchNodes = (nodeIds: Set<NodeIdType>, g: Graph) => Set<NodeObject>;
-type FetchEdges = (node: Node, g: Graph) => Set<EdgeObject>;
-
-export type EventType =
-    GraphEventType |
-    NodeEventType |
-    EdgeEventType;
-type EventCallbackType = (evt: GraphEvent | NodeAddEvent | EdgeEvent) => void | EventType;
-
-export type GraphEventType = GraphEvent["type"];
-export type NodeEventType = NodeEvent["type"];
-export type EdgeEventType = EdgeEvent["type"];
-
-// graph events
-export interface GraphEvent {
-    type: "graph-settled";
-    graph: Graph;
-}
-
-// node events
-export type NodeEvent = NodeGenericEvent | NodeBeforeUpdateEvent | NodeAddEvent;
-
-export interface NodeGenericEvent {
-    type: "node-update-after";
-    node: Node;
-}
-
-export interface NodeBeforeUpdateEvent {
-    type: "node-update-before";
-    node: Node;
-    doUpdate: boolean;
-}
-
-export interface NodeAddEvent {
-    type: "node-add-before",
-    nodeId: NodeIdType,
-    metadata: object,
-}
-
-// edge events
-export type EdgeEvent = EdgeGenericEvent | EdgeBeforeUpdateEvent | EdgeAddEvent;
-
-export interface EdgeGenericEvent {
-    type: "edge-update-after";
-    edge: Edge;
-}
-
-export interface EdgeBeforeUpdateEvent {
-    type: "edge-update-before";
-    edge: Edge;
-    doUpdate: boolean;
-}
-
-export interface EdgeAddEvent {
-    type: "edge-add-before",
-    srcNodeId: NodeIdType,
-    dstNodeId: NodeIdType,
-    metadata: object,
-}
 
 export class Graph {
     config: GraphConfig;
@@ -131,8 +48,8 @@ export class Graph {
         this.meshCache = new MeshCache();
 
         // configure graph
-        this.fetchNodes = this.config.fetchNodes;
-        this.fetchEdges = this.config.fetchEdges;
+        this.fetchNodes = this.config.behavior.fetchNodes;
+        this.fetchEdges = this.config.behavior.fetchEdges;
 
         // get the element that we are going to use for placing our canvas
         if (typeof (element) === "string") {
@@ -162,15 +79,15 @@ export class Graph {
         // setup babylonjs
         this.engine = new Engine(this.canvas, true); // Generate the BABYLON 3D engine
         this.scene = new Scene(this.engine);
-        this.camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new Vector3(0, 0, 0));
+        this.camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 30, new Vector3(0, 0, 0));
         this.camera.attachControl(this.canvas, true);
         new HemisphericLight("light", new Vector3(1, 1, 0));
 
         // setup PhotoDome Skybox
-        if (this.config.skybox) {
+        if (this.config.style.skybox && this.config.style.skybox.length) {
             new PhotoDome(
                 "testdome",
-                this.config.skybox,
+                this.config.style.skybox,
                 {
                     resolution: 32,
                     size: 1000,
@@ -180,9 +97,9 @@ export class Graph {
         }
 
         // setup force directed graph engine
-        if (this.config.graphEngineType === "ngraph") {
+        if (this.config.engine.type === "ngraph") {
             this.graphEngine = new NGraphEngine();
-        } else if (this.config.graphEngineType === "d3") {
+        } else if (this.config.engine.type === "d3") {
             this.graphEngine = new D3GraphEngine();
         } else {
             throw new TypeError(`Unknown graph engine type: '${this.graphEngineType}'`);
@@ -191,10 +108,8 @@ export class Graph {
         // setup stats
         this.stats = new Stats(this);
 
-        if (this.config.preSteps) {
-            for (let i = 0; i < this.config.preSteps; i++) {
-                this.graphEngine.step();
-            }
+        for (let i = 0; i < this.config.engine.preSteps; i++) {
+            this.graphEngine.step();
         }
     }
 
@@ -227,7 +142,7 @@ export class Graph {
 
         this.stats.step();
         this.stats.graphStep.beginMonitoring();
-        for (let i = 0; i < this.config.stepMultiplier; i++) {
+        for (let i = 0; i < this.config.engine.stepMultiplier; i++) {
             this.graphEngine.step();
         }
         this.stats.graphStep.endMonitoring();
@@ -246,7 +161,7 @@ export class Graph {
         }
         this.stats.edgeUpdate.endMonitoring();
 
-        if (maxDelta < this.minDelta) {
+        if (this.running && maxDelta < this.minDelta) {
             console.log("Graph Settled");
             console.log(this.stats.toString());
             this.graphObservable.notifyObservers({type: "graph-settled", graph: this});
@@ -255,20 +170,20 @@ export class Graph {
     }
 
     get minDelta(): number {
-        if (this.config.minDelta) {
-            return this.config.minDelta;
+        if (this.config.engine.minDelta) {
+            return this.config.engine.minDelta;
         }
 
         const sz = Node.list.size + Edge.list.size;
         let ret = (sigmoid(sz, 100) - 0.5) * 0.5;
-        ret *= this.config.stepMultiplier;
+        ret *= this.config.engine.stepMultiplier;
         return ret;
     }
 
     addNode(nodeId: NodeIdType, metadata: object = {}): Node {
         this.nodeObservable.notifyObservers({type: "node-add-before", nodeId, metadata});
         return Node.create(this, nodeId, {
-            nodeMeshConfig: this.config.nodeMeshOpts,
+            nodeMeshConfig: this.config.style.node,
             pinOnDrag: this.pinOnDrag,
             metadata,
         });
@@ -277,7 +192,7 @@ export class Graph {
     addEdge(srcNodeId: NodeIdType, dstNodeId: NodeIdType, metadata: object = {}): Edge {
         this.edgeObservable.notifyObservers({type: "edge-add-before", srcNodeId, dstNodeId, metadata});
         return Edge.create(this, srcNodeId, dstNodeId, {
-            edgeMeshConfig: this.config.edgeMeshOpts,
+            edgeMeshConfig: this.config.style.edge,
             metadata,
         });
     }
@@ -312,11 +227,7 @@ export class Graph {
 
     async loadJsonData(url: string, opts: LoadJsonDataOpts = {}): Promise<void> {
         this.stats.loadTime.beginMonitoring();
-        const nodeListProp = opts.nodeListProp ?? "nodes";
-        const edgeListProp = opts.edgeListProp ?? "links";
-        const nodeIdProp = opts.nodeIdProp ?? "id";
-        const edgeSrcIdProp = opts.edgeSrcIdProp ?? "source";
-        const edgeDstIdProp = opts.edgeDstIdProp ?? "target";
+        const {nodeListProp, edgeListProp, nodeIdProp, edgeSrcIdProp, edgeDstIdProp} = getJsonDataOpts(opts);
 
         // fetch data from URL
         const response = await fetch(url, opts.fetchOpts);
@@ -356,144 +267,4 @@ interface LoadJsonDataOpts {
     edgeSrcIdProp?: string;
     edgeDstIdProp?: string;
     fetchOpts?: Parameters<typeof fetch>[1];
-}
-
-/** * Mesh Cache ***/
-const meshCacheMap: Map<string, Mesh> = new Map();
-
-type MeshCreatorFn = () => Mesh;
-
-export class MeshCache {
-    hits = 0;
-    misses = 0;
-
-    get(name: string, creator: MeshCreatorFn): InstancedMesh {
-        let mesh = meshCacheMap.get(name);
-        if (mesh) {
-            this.hits++;
-            return mesh.createInstance(name);
-        }
-
-        this.misses++;
-        mesh = creator();
-        mesh.isVisible = false;
-        meshCacheMap.set(name, mesh);
-        return mesh.createInstance(name);
-    }
-
-    reset(): void {
-        this.hits = 0;
-        this.misses = 0;
-    }
-}
-
-/** * Statistics ***/
-class Stats {
-    graph: Graph;
-    sceneInstrumentation: SceneInstrumentation;
-    babylonInstrumentation: EngineInstrumentation;
-    graphStep: PerfCounter;
-    nodeUpdate: PerfCounter;
-    edgeUpdate: PerfCounter;
-    loadTime: PerfCounter;
-    totalUpdates = 0;
-
-    constructor(g: Graph) {
-        this.graph = g;
-
-        this.sceneInstrumentation = new SceneInstrumentation(g.scene);
-        this.sceneInstrumentation.captureFrameTime = true;
-        this.sceneInstrumentation.captureRenderTime = true;
-        this.sceneInstrumentation.captureInterFrameTime = true;
-        this.sceneInstrumentation.captureCameraRenderTime = true;
-        this.sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
-        this.sceneInstrumentation.captureRenderTargetsRenderTime = true;
-
-        this.babylonInstrumentation = new EngineInstrumentation(g.engine);
-        this.babylonInstrumentation.captureGPUFrameTime = true;
-        this.babylonInstrumentation.captureShaderCompilationTime = true;
-
-        this.graphStep = new PerfCounter();
-        this.nodeUpdate = new PerfCounter();
-        this.edgeUpdate = new PerfCounter();
-        this.loadTime = new PerfCounter();
-    }
-
-    toString(): string {
-        let statsStr = "";
-        function appendStat(name: string, stat: string | number, units: string = "") {
-            statsStr += `${name}: ${stat}${units}\n`;
-        }
-
-        function statsSection(name: string) {
-            statsStr += `\n${name}\n`;
-            for (let i = 0; i < name.length; i++) {
-                statsStr += "-";
-            }
-            statsStr += "\n";
-        }
-
-        function appendPerf(name: string, stat: PerfCounter, multiplier = 1) {
-            statsStr += `${name} (min/avg/last sec/max [total]): `;
-            statsStr += `${(stat.min * multiplier).toFixed(2)} / `;
-            statsStr += `${(stat.average * multiplier).toFixed(2)} / `;
-            statsStr += `${(stat.lastSecAverage * multiplier).toFixed(2)} / `;
-            statsStr += `${(stat.max * multiplier).toFixed(2)} `;
-            statsStr += `[${(stat.total * multiplier).toFixed(2)}] ms\n`;
-        }
-
-        statsSection("Graph");
-        appendStat("Num Nodes", this.numNodes);
-        appendStat("Num Edges", this.numEdges);
-        appendStat("Total Updates", this.totalUpdates);
-
-        statsSection("Graph Engine Performance");
-        appendPerf("JSON Load Time", this.loadTime);
-        appendPerf("Graph Physics Engine Time", this.graphStep);
-        appendPerf("Node Update Time", this.nodeUpdate);
-        appendPerf("Edge Update Time", this.edgeUpdate);
-
-        statsSection("BabylonJS Performance");
-        appendPerf("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter, 0.000001);
-        appendPerf("Shader Time", this.babylonInstrumentation.shaderCompilationTimeCounter);
-        appendPerf("Mesh Evaluation Time", this.sceneInstrumentation.activeMeshesEvaluationTimeCounter);
-        appendPerf("Render Targets Time", this.sceneInstrumentation.renderTargetsRenderTimeCounter);
-        appendPerf("Draw Calls Time", this.sceneInstrumentation.drawCallsCounter);
-        appendPerf("Frame Time", this.sceneInstrumentation.frameTimeCounter);
-        appendPerf("Render Time", this.sceneInstrumentation.renderTimeCounter);
-        appendPerf("Time Between Frames", this.sceneInstrumentation.interFrameTimeCounter);
-        appendPerf("Camera Render Time", this.sceneInstrumentation.cameraRenderTimeCounter);
-
-        statsSection("Mesh Cache");
-        appendStat("Mesh Cache Hits", this.meshCacheHits);
-        appendStat("Mesh Cache Misses", this.meshCacheMisses);
-
-        return statsStr;
-    }
-
-    step() {
-        this.totalUpdates++;
-        console.log(`Iteration: ${this.totalUpdates}`);
-        console.log(this.toString());
-    }
-
-    reset() {
-        this.totalUpdates = 0;
-    }
-
-    get numNodes(): number {
-        return Node.list.size;
-    }
-
-    get numEdges(): number {
-        return Edge.list.size;
-    }
-
-    get meshCacheHits(): number {
-        return this.graph.meshCache.hits;
-    }
-
-    get meshCacheMisses(): number {
-        return this.graph.meshCache.misses;
-    }
 }
