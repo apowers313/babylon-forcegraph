@@ -3966,7 +3966,7 @@ class Vo {
       Math.PI / 2.5,
       this.config.style.startingCameraDistance,
       new ge(0, 0, 0)
-    ), this.camera.attachControl(this.canvas, !0), new Ei("light", new ge(1, 1, 0)), this.config.style.skybox && this.config.style.skybox.length && new Ti(
+    ), delete this.camera.lowerBetaLimit, delete this.camera.upperBetaLimit, this.camera.attachControl(this.canvas, !0), new Ei("light", new ge(1, 1, 0)), this.config.style.skybox && this.config.style.skybox.length && new Ti(
       "testdome",
       this.config.style.skybox,
       {
