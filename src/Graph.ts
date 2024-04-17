@@ -85,6 +85,10 @@ export class Graph {
             this.config.style.startingCameraDistance,
             new Vector3(0, 0, 0),
         );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (this.camera as any).lowerBetaLimit;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (this.camera as any).upperBetaLimit;
         this.camera.attachControl(this.canvas, true);
         new HemisphericLight("light", new Vector3(1, 1, 0));
 
