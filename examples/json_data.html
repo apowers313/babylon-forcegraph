@@ -43,6 +43,12 @@
                 startingCameraDistance: 100,
             }
         });
+
+        g.addListener("graph-settled", (e) => {
+            console.log("Graph Settled");
+            console.log(g.stats.toString());
+        });
+
         await g.loadJsonData("./data/miserables.json", {
             // nodeListProp: "nodes",
             edgeListProp: "links",
@@ -50,6 +56,7 @@
             edgeSrcIdProp: "source",
             edgeDstIdProp: "target",
         });
+
         await g.init();
     </script>
 </body>

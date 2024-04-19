@@ -57,7 +57,7 @@
 
 
         const nodeStyleOpts = {
-            shape: randomFromList(["box", "sphere", "cylinder", "cone", "capsule", "torus", "torus-knot", "tetrahedron", "octahedron", "dodecahedron", "icosahedron", "rhombicuboctahedron", "triangular_prism", "pentagonal_prism", "hexagonal_prism", "square_pyramid", "pentagonal_pyramid", "triangular_dipyramid", "pentagonal_dipyramid", "elongated_square_dypyramid", "elongated_pentagonal_dipyramid", "elongated_pentagonal_cupola", "goldberg", "icosphere", "geodesic"]),
+            shape: randomFromList(["box", "sphere", "cylinder", "cone", "capsule", "torus-knot", "tetrahedron", "octahedron", "dodecahedron", "icosahedron", "rhombicuboctahedron", "triangular_prism", "pentagonal_prism", "hexagonal_prism", "square_pyramid", "pentagonal_pyramid", "triangular_dipyramid", "pentagonal_dipyramid", "elongated_square_dypyramid", "elongated_pentagonal_dipyramid", "elongated_pentagonal_cupola", "goldberg", "icosphere", "geodesic"]),
             color: randomColor(),
             wireframe: randomBool(0.1),
             opacity: randomFromList([1, 1, 1, 1, 0.5]),
@@ -65,12 +65,12 @@
         };
 
         const edgeStyleOpts = {
-            color: randomColor(),
             type: randomFromList(["plain", "moving"]),
+            color: randomColor(),
+            width: randomRange(0.1, 0.7),
             arrowCap: randomBool(),
             movingLineOpts: {
                 baseColor: randomColor(),
-                width: randomRange(0.1, 0.7),
             }
         };
 

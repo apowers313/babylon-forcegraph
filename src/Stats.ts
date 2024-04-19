@@ -11,10 +11,12 @@ export class Stats {
     graph: Graph;
     sceneInstrumentation: SceneInstrumentation;
     babylonInstrumentation: EngineInstrumentation;
-    graphStep: PerfCounter;
-    nodeUpdate: PerfCounter;
-    edgeUpdate: PerfCounter;
-    loadTime: PerfCounter;
+    graphStep = new PerfCounter();
+    nodeUpdate = new PerfCounter();
+    edgeUpdate = new PerfCounter();
+    arrowCapUpdate = new PerfCounter();
+    intersectCalc = new PerfCounter();
+    loadTime = new PerfCounter();
     totalUpdates = 0;
 
     constructor(g: Graph) {
@@ -31,11 +33,6 @@ export class Stats {
         this.babylonInstrumentation = new EngineInstrumentation(g.engine);
         this.babylonInstrumentation.captureGPUFrameTime = true;
         this.babylonInstrumentation.captureShaderCompilationTime = true;
-
-        this.graphStep = new PerfCounter();
-        this.nodeUpdate = new PerfCounter();
-        this.edgeUpdate = new PerfCounter();
-        this.loadTime = new PerfCounter();
     }
 
     toString(): string {
@@ -67,14 +64,20 @@ export class Stats {
         appendStat("Total Updates", this.totalUpdates);
         appendStat("Mesh Cache Hits", this.meshCacheHits);
         appendStat("Mesh Cache Misses", this.meshCacheMisses);
+        appendStat("Number of Node Updates", this.nodeUpdate.count);
+        appendStat("Number of Edge Updates", this.edgeUpdate.count);
+        appendStat("Number of ArrowCap Updates", this.arrowCapUpdate.count);
 
         statsSection("Graph Engine Performance");
         appendPerf("JSON Load Time", this.loadTime);
         appendPerf("Graph Physics Engine Time", this.graphStep);
         appendPerf("Node Update Time", this.nodeUpdate);
         appendPerf("Edge Update Time", this.edgeUpdate);
+        appendPerf("Arrow Cap Update Time", this.arrowCapUpdate);
+        appendPerf("Ray Intersect Calculation Time", this.intersectCalc);
 
         statsSection("BabylonJS Performance");
+        appendStat("Draw Calls", this.sceneInstrumentation.drawCallsCounter.count);
         appendPerf("GPU Time", this.babylonInstrumentation.gpuFrameTimeCounter, 0.000001);
         appendPerf("Shader Time", this.babylonInstrumentation.shaderCompilationTimeCounter);
         appendPerf("Mesh Evaluation Time", this.sceneInstrumentation.activeMeshesEvaluationTimeCounter);

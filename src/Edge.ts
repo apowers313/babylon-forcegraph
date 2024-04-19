@@ -17,8 +17,6 @@ import type {EdgeStyleConfig} from "./Config";
 import type {Graph} from "./Graph";
 import {colorNameToHex} from "./util";
 
-const ARROW_CAP_LEN = 0.5;
-
 interface EdgeOpts {
     metadata?: object;
     edgeMeshConfig?: EdgeStyleConfig;
@@ -33,7 +31,9 @@ export class Edge {
     metadata: object;
     mesh: AbstractMesh;
     arrowMesh: AbstractMesh | null = null;
-    edgeMeshConfig: EdgeStyleConfig;
+    edgeStyleConfig: EdgeStyleConfig;
+    // XXX: performance impact when not needed?
+    ray: Ray;
 
     constructor(graph: Graph, srcNodeId: NodeIdType, dstNodeId: NodeIdType, opts: EdgeOpts = {}) {
         this.parentGraph = graph;
@@ -55,14 +55,18 @@ export class Edge {
         this.srcNode = srcNode;
         this.dstNode = dstNode;
 
+        // create ray for direction / intercept finding
+        this.ray = new Ray(this.srcNode.mesh.position, this.dstNode.mesh.position);
+
         // copy edgeMeshConfig
-        this.edgeMeshConfig = this.parentGraph.config.style.edge;
+        this.edgeStyleConfig = this.parentGraph.config.style.edge;
 
         // create ngraph link
         this.parentGraph.graphEngine.addEdge(this);
 
         // create mesh
-        this.mesh = this.edgeMeshConfig.edgeMeshFactory(this, this.parentGraph, this.edgeMeshConfig);
+        this.mesh = this.edgeStyleConfig.edgeMeshFactory(this, this.parentGraph, this.edgeStyleConfig);
+        this.mesh.isPickable = false;
         this.mesh.metadata = {};
         this.mesh.metadata.parentEdge = this;
     }
@@ -73,6 +77,7 @@ export class Edge {
         this.parentGraph.edgeObservable.notifyObservers({type: "edge-update-before", edge: this});
 
         const {srcPoint, dstPoint} = this.transformArrowCap();
+
         if (srcPoint && dstPoint) {
             this.transformEdgeMesh(
                 srcPoint,
@@ -80,14 +85,32 @@ export class Edge {
             );
         } else {
             this.transformEdgeMesh(
-                // TODO: not sure about the performance impact of converting
-                // this to vectors rather than just passing an array of points
                 new Vector3(lnk.src.x, lnk.src.y, lnk.src.z),
                 new Vector3(lnk.dst.x, lnk.dst.y, lnk.dst.z),
             );
         }
 
         this.parentGraph.edgeObservable.notifyObservers({type: "edge-update-after", edge: this});
+    }
+
+    static updateRays(g: Graph): void {
+        if (g.config.style.edge.arrowCap) {
+            for (const e of g.graphEngine.edges) {
+                const srcMesh = e.srcNode.mesh;
+                const dstMesh = e.dstNode.mesh;
+
+                // RayHelper.CreateAndShow(ray, e.parentGraph.scene, Color3.Red());
+
+                // XXX: position is missing from Ray TypeScript definition
+                /* eslint-disable  @typescript-eslint/no-explicit-any */
+                (e.ray as any).position = dstMesh.position;
+                e.ray.direction = dstMesh.position.subtract(srcMesh.position);
+            }
+
+            // this sucks for performance, but we have to do a full render pass
+            // to update rays and intersections
+            g.scene.render();
+        }
     }
 
     static get list(): EdgeMap {
@@ -109,12 +132,14 @@ export class Edge {
     static defaultEdgeMeshFactory(e: Edge, g: Graph, o: EdgeStyleConfig): AbstractMesh {
         if (o.arrowCap) {
             e.arrowMesh = g.meshCache.get("default-arrow-cap", () => {
+                const width = getArrowCapWidth(o.width);
+                const len = getArrowCapLen(o.width);
                 const cap1 = GreasedLineTools.GetArrowCap(
-                    new Vector3(0, 0, -ARROW_CAP_LEN), // position
+                    new Vector3(0, 0, -len), // position
                     new Vector3(0, 0, 1), // direction
-                    ARROW_CAP_LEN, // length
-                    4, // widthUp
-                    4, // widthDown
+                    len, // length
+                    width, // widthUp
+                    width, // widthDown
                 );
                 return CreateGreasedLine(
                     "lines",
@@ -146,8 +171,13 @@ export class Edge {
 
     static createPlainLine(_e: Edge, _g: Graph, o: EdgeStyleConfig): GreasedLineBaseMesh {
         return CreateGreasedLine("edge-plain",
-            {points: Edge.unitVectorPoints},
-            {color: Color3.FromHexString(colorNameToHex(o.color))},
+            {
+                points: Edge.unitVectorPoints,
+            },
+            {
+                color: Color3.FromHexString(colorNameToHex(o.color)),
+                width: o.width,
+            },
         );
     }
 
@@ -180,10 +210,12 @@ export class Edge {
         texture.name = "moving-texture";
 
         const mesh = CreateGreasedLine("edge-moving",
-            {points: Edge.unitVectorPoints},
+            {
+                points: Edge.unitVectorPoints,
+            },
             {
                 // color: Color3.FromHexString(colorNameToHex(edgeColor))
-                width: o.movingLineOpts.width,
+                width: o.width,
                 colorMode: GreasedLineMeshColorMode.COLOR_MODE_MULTIPLY,
             },
         );
@@ -216,6 +248,7 @@ export class Edge {
 
     transformArrowCap() {
         if (this.arrowMesh) {
+            this.parentGraph.stats.arrowCapUpdate.beginMonitoring();
             const {srcPoint, dstPoint, newEndPoint} = this.getInterceptPoints();
             if (!srcPoint || !dstPoint || !newEndPoint) {
                 throw new Error("Internal Error: mesh intercept points not found");
@@ -224,6 +257,7 @@ export class Edge {
             this.arrowMesh.position = dstPoint;
             this.arrowMesh.lookAt(this.dstNode.mesh.position);
 
+            this.parentGraph.stats.arrowCapUpdate.endMonitoring();
             return {
                 srcPoint,
                 dstPoint: newEndPoint,
@@ -240,29 +274,26 @@ export class Edge {
     getInterceptPoints() {
         const srcMesh = this.srcNode.mesh;
         const dstMesh = this.dstNode.mesh;
-        // create ray for direction / intercept finding
-        const ray = new Ray(this.srcNode.mesh.position, this.dstNode.mesh.position);
-        // RayHelper.CreateAndShow(ray, e.parentGraph.scene, Color3.Red());
 
-        // XXX: position is missing from Ray TypeScript definition
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
-        (ray as any).position = dstMesh.position;
-        ray.direction = dstMesh.position.subtract(srcMesh.position);
-
-        const dstHitInfo = ray.intersectsMeshes([dstMesh]);
-        const srcHitInfo = ray.intersectsMeshes([srcMesh]);
+        // ray is updated in updateRays to ensure intersections
+        this.parentGraph.stats.intersectCalc.beginMonitoring();
+        const dstHitInfo = this.ray.intersectsMeshes([dstMesh]);
+        const srcHitInfo = this.ray.intersectsMeshes([srcMesh]);
+        this.parentGraph.stats.intersectCalc.endMonitoring();
 
         let srcPoint: Vector3 | null = null;
         let dstPoint: Vector3 | null = null;
         let newEndPoint: Vector3 | null = null;
         if (dstHitInfo.length && srcHitInfo.length) {
+            const len = getArrowCapLen(this.edgeStyleConfig.width);
+
             dstPoint = dstHitInfo[0].pickedPoint!;
             srcPoint = srcHitInfo[0].pickedPoint!;
             const distance = srcPoint.subtract(dstPoint).length();
-            const adjDistance = distance - ARROW_CAP_LEN;
+            const adjDistance = distance - len;
             const {x: x1, y: y1, z: z1} = srcPoint;
             const {x: x2, y: y2, z: z2} = dstPoint;
-            // calculate new point along line
+            // calculate new line endpoint along line between midpoints of meshes
             const x3 = x1 + ((adjDistance / distance) * (x2 - x1));
             const y3 = y1 + ((adjDistance / distance) * (y2 - y1));
             const z3 = z1 + ((adjDistance / distance) * (z2 - z1));
@@ -288,6 +319,14 @@ export class Edge {
             0.5,
         ];
     }
+}
+
+function getArrowCapWidth(w: number): number {
+    return Math.max(20 * w, 4);
+}
+
+function getArrowCapLen(w: number): number {
+    return Math.max(w, 0.5);
 }
 
 class EdgeMap {

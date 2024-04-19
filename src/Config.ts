@@ -22,10 +22,10 @@ export const defaultNodeStyleOpts: NodeStyleConfig = {
 export const defaultEdgeStyleOpts: EdgeStyleConfig = {
     type: "moving",
     color: "white",
+    width: 0.25,
     arrowCap: false,
     movingLineOpts: {
         baseColor: "lightgrey",
-        width: 0.25,
     },
     edgeMeshFactory: Edge.defaultEdgeMeshFactory,
 };
@@ -114,7 +114,7 @@ export interface NodeStyleOpts {
     opacity?: number;
     wireframe?: boolean;
     color?: string;
-    shape?: "box" | "sphere" | "cylinder" | "cone" | "capsule" | "torus" | "torus-knot" | "tetrahedron" | "octahedron" | "dodecahedron" | "icosahedron" | "rhombicuboctahedron" | "triangular_prism" | "pentagonal_prism" | "hexagonal_prism" | "square_pyramid" | "pentagonal_pyramid" | "triangular_dipyramid" | "pentagonal_dipyramid" | "elongated_square_dypyramid" | "elongated_pentagonal_dipyramid" | "elongated_pentagonal_cupola" | "goldberg" | "icosphere" | "geodesic";
+    shape?: "box" | "sphere" | "cylinder" | "cone" | "capsule" | "torus-knot" | "tetrahedron" | "octahedron" | "dodecahedron" | "icosahedron" | "rhombicuboctahedron" | "triangular_prism" | "pentagonal_prism" | "hexagonal_prism" | "square_pyramid" | "pentagonal_pyramid" | "triangular_dipyramid" | "pentagonal_dipyramid" | "elongated_square_dypyramid" | "elongated_pentagonal_dipyramid" | "elongated_pentagonal_cupola" | "goldberg" | "icosphere" | "geodesic";
     nodeMeshFactory?: NodeMeshFactory;
     label?: boolean;
 }
@@ -134,13 +134,13 @@ export interface EdgeObject {
 
 export interface MovingLineOpts {
     baseColor?: string;
-    width?: number;
 }
 
 export interface EdgeStyleOpts {
     type?: "plain" | "moving";
     arrowCap?: boolean;
     color?: string;
+    width?: number;
     movingLineOpts?: MovingLineOpts;
     edgeMeshFactory?: EdgeMeshFactory;
 }

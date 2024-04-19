@@ -131,9 +131,7 @@ export class Graph {
 
         // WebXR setup
         if (navigator.xr) {
-            // const ground = MeshBuilder.CreateGround("ground", { width: 8, height: 8 });
             await this.scene.createDefaultXRExperienceAsync({
-                // floorMeshes: [ground]
                 disableTeleportation: true,
             });
         }
@@ -149,6 +147,7 @@ export class Graph {
             return;
         }
 
+        // update graph engine
         this.stats.step();
         this.stats.graphStep.beginMonitoring();
         for (let i = 0; i < this.config.engine.stepMultiplier; i++) {
@@ -156,18 +155,22 @@ export class Graph {
         }
         this.stats.graphStep.endMonitoring();
 
+        // update nodes
         this.stats.nodeUpdate.beginMonitoring();
         for (const n of this.graphEngine.nodes) {
             n.update();
         }
         this.stats.nodeUpdate.endMonitoring();
 
+        // update edges
         this.stats.edgeUpdate.beginMonitoring();
+        Edge.updateRays(this);
         for (const e of this.graphEngine.edges) {
             e.update();
         }
         this.stats.edgeUpdate.endMonitoring();
 
+        // check to see if we are done
         if (this.graphEngine.isSettled) {
             this.graphObservable.notifyObservers({type: "graph-settled", graph: this});
             this.running = false;

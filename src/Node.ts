@@ -47,6 +47,7 @@ export class Node {
 
         // create mesh
         this.mesh = this.nodeMeshConfig.nodeMeshFactory(this, this.parentGraph, this.nodeMeshConfig);
+        this.mesh.isPickable = true;
         this.mesh.metadata = {parentNode: this};
 
         // create label
@@ -201,9 +202,11 @@ export class Node {
             case "capsule":
                 mesh = Node.createCapsule(n, g, o);
                 break;
-            case "torus":
-                mesh = Node.createTorus(n, g, o);
-                break;
+            // Torus disabled because it breaks ray finding with arrowcaps whe
+            // the ray shoots right through the hole in the center of the torus
+            // case "torus":
+            //     mesh = Node.createTorus(n, g, o);
+            //     break;
             case "torus-knot":
                 // https://doc.babylonjs.com/features/featuresDeepDive/mesh/creation/set/torus_knot
                 mesh = Node.createTorusKnot(n, g, o);
