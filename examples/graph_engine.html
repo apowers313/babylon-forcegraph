@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>JSON Data Example</title>
+    <title>D3 Graph Engine Example</title>
 
     <style>
         html,
@@ -39,7 +39,13 @@
         import { Graph } from "babylon-forcegraph";
 
         const g = new Graph("forceGraph", { graphEngineType: "d3" });
-        await g.loadJsonData("./data/miserables.json");
+        await g.loadJsonData("./data/miserables.json", {
+            // nodeListProp: "nodes",
+            edgeListProp: "links",
+            // nodeIdProp: "id",
+            edgeSrcIdProp: "source",
+            edgeDstIdProp: "target",
+        });
         await g.init();
     </script>
 </body>
