@@ -158,7 +158,7 @@ export class Graph {
                 // initial VR position is fine; initial AR position appears to
                 // be the origin
                 if (this.xrHelper?.baseExperience.sessionManager.sessionMode === "immersive-ar") {
-                    cam.position = this.camera.position;
+                    cam.setTransformationFromNonVRCamera(this.camera);
                 }
             });
 
