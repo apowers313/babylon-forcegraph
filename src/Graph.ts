@@ -7,6 +7,7 @@ import {
     PhotoDome,
     Scene,
     Vector3,
+    WebXRDefaultExperience,
     WebXREnterExitUIButton,
 } from "@babylonjs/core";
 import {EdgeEvent, EventCallbackType, EventType, GraphEvent, NodeEvent} from "./Events";
@@ -29,6 +30,7 @@ export class Graph {
     scene: Scene;
     camera: Camera;
     skybox?: string;
+    xrHelper?: WebXRDefaultExperience;
     meshCache: MeshCache;
     // graph engine
     graphEngineType?: GraphEngineNames;
@@ -139,7 +141,7 @@ export class Graph {
 
         // WebXR setup
         if (navigator.xr) {
-            await this.scene.createDefaultXRExperienceAsync({
+            this.xrHelper = await this.scene.createDefaultXRExperienceAsync({
                 uiOptions: {
                     customButtons: buttonsArray,
                 },
@@ -151,13 +153,21 @@ export class Graph {
                 //     },
                 // },
             });
+
+            this.xrHelper.baseExperience.onInitialXRPoseSetObservable.add((cam) => {
+                // initial VR position is fine; initial AR position appears to
+                // be the origin
+                if (this.xrHelper?.baseExperience.sessionManager.sessionMode === "immersive-ar") {
+                    cam.position = this.camera.position;
+                }
+            });
+
             const overlay = document.querySelector(".xr-button-overlay");
             if (overlay) {
                 // position the overlay so that the buttons are visible
                 (overlay as HTMLElement).style.cssText = "z-index:11;position: absolute; right: 20px;bottom: 50px;";
             }
         } else {
-            console.log("no WebXR");
             // createDefaultXRExperienceAsync creates it's own overlay, but we
             // don't get that benefit here...
             const overlay = addButtonOverlay(this);
@@ -169,7 +179,7 @@ export class Graph {
             noXrBtn.innerHTML = "VR / AR NOT AVAILABLE";
             overlay.appendChild(noXrBtn);
             setTimeout(() => {
-                noXrBtn.remove();
+                overlay.remove();
             }, 5000);
         }
 
@@ -348,6 +358,17 @@ function addCss() {
     
     .webxr-available:focus {
         background-color: rgba(51,51,51,1);
+    }
+    
+    canvas {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        outline: none;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
     }`;
 
     const style = document.createElement("style");
