@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite --force",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 9025 --no-open",
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic --project-token=chpt_1dbd83f7d3e84f6"
   },
   "peerDependencies": {
     "@babylonjs/core": "^6.49.0",
@@ -14,12 +17,22 @@
   },
   "devDependencies": {
     "@babylonjs/inspector": "^6.46.0",
+    "@chromatic-com/storybook": "^3.2.6",
     "@eslint/js": "^9.0.0",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-interactions": "^8.6.14",
+    "@storybook/blocks": "^8.6.14",
+    "@storybook/html": "^8.6.14",
+    "@storybook/html-vite": "^8.6.14",
+    "@storybook/test": "^8.6.14",
     "@types/node": "^20.11.25",
     "ajv": "^8.12.0",
+    "chromatic": "^11.28.2",
     "d3-force-3d": "^3.0.5",
     "eslint": "^8.57.0",
+    "eslint-plugin-storybook": "^0.12.0",
     "lodash.defaultsdeep": "^4.6.1",
+    "storybook": "^8.6.14",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.6.0",
     "vite": "^5.1.4"
@@ -27,5 +40,10 @@
   "dependencies": {
     "ngraph.forcelayout": "^3.3.1",
     "ngraph.graph": "^20.0.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:storybook/recommended"
+    ]
   }
 }
