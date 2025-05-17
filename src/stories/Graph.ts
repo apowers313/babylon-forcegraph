@@ -3,11 +3,17 @@ import {Graph} from "../../index.ts";
 export interface GraphProps {
     // nodeColor?: string;
     jsonData?: string;
+    onGraphSettled?: () => void;
+    onNodeAddBefore?: () => void;
+    onEdgeAddBefore?: () => void;
   }
 
 export const createGraph = ({
     // nodeColor = "grey",
     jsonData = "./examples/data/miserables.json",
+    onGraphSettled,
+    onNodeAddBefore,
+    onEdgeAddBefore,
 }: GraphProps) => {
     console.log("creating new graph", jsonData);
     const e = document.createElement("div");
@@ -25,6 +31,18 @@ export const createGraph = ({
     e.style.touchAction = "none";
 
     const g = new Graph(e);
+
+    if (onNodeAddBefore) {
+        g.addListener("node-add-before", onNodeAddBefore);
+    }
+
+    if (onEdgeAddBefore) {
+        g.addListener("edge-add-before", onEdgeAddBefore);
+    }
+
+    if (onGraphSettled) {
+        g.addListener("graph-settled", onGraphSettled);
+    }
 
     g.addNode(0);
     g.addNode(1);

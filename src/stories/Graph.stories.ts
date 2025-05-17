@@ -1,6 +1,6 @@
 import {GraphProps, createGraph} from "./Graph";
 import type {Meta, StoryObj} from "@storybook/html";
-// import {fn} from "@storybook/test";
+import {fn} from "@storybook/test";
 
 const meta = {
     title: "Graph/Basic",
@@ -10,6 +10,15 @@ const meta = {
     },
     argTypes: {
         jsonData: {control: "text"},
+        onGraphSettled: {action: "onGraphSettled"},
+        onNodeAddBefore: {action: "onNodeAddBefore"},
+        onEdgeAddBefore: {action: "onEdgeAddBefore"},
+
+    },
+    args: {
+        onGraphSettled: fn(),
+        onNodeAddBefore: fn(),
+        onEdgeAddBefore: fn(),
     },
 } satisfies Meta<GraphProps>;
 
