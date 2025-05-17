@@ -59,9 +59,9 @@ export function getConfig(o: GraphOpts): GraphConfig {
 /** * GRAPH TYPES ***/
 
 export interface GraphOpts {
-    style: GraphStyleOpts,
-    behavior: GraphBehaviorOpts,
-    engine: GraphEngineOpts,
+    style?: GraphStyleOpts,
+    behavior?: GraphBehaviorOpts,
+    engine?: GraphEngineOpts,
 }
 
 export type GraphConfig = DeepRequired<GraphOpts>;

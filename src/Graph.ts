@@ -45,7 +45,7 @@ export class Graph {
     nodeObservable: Observable<NodeEvent> = new Observable();
     edgeObservable: Observable<EdgeEvent> = new Observable();
 
-    constructor(element: HTMLCanvasElement | string, opts: GraphOpts) {
+    constructor(element: HTMLElement | string, opts: GraphOpts = {}) {
         this.config = getConfig(opts);
         this.meshCache = new MeshCache();
 
@@ -55,7 +55,7 @@ export class Graph {
 
         // get the element that we are going to use for placing our canvas
         if (typeof (element) === "string") {
-            const e = document.getElementById(element);
+            const e: HTMLElement | null = document.getElementById(element);
             if (!e) {
                 throw new Error(`getElementById() could not find element '${element}'`);
             }
@@ -309,20 +309,29 @@ function mkButton(text: string, sessionMode?: XRSessionMode, referenceSpaceType?
     referenceSpaceType = referenceSpaceType || "local-floor";
 
     // create html button
-    const hmdBtn = document.createElement("button");
-    hmdBtn.classList.add("webxr-button");
-    hmdBtn.classList.add("webxr-available");
-    hmdBtn.innerHTML = text;
+    const btnElement = document.createElement("button");
+    btnElement.classList.add("webxr-button");
+    btnElement.classList.add("webxr-available");
+    btnElement.innerHTML = text;
 
     // create babylon button
-    const ret = new WebXREnterExitUIButton(hmdBtn, sessionMode, referenceSpaceType);
-    ret.update = function(activeButton: WebXREnterExitUIButton) {
-        this.element.style.display = activeButton === null || activeButton === this ? "" : "none";
-        // TODO: update for new CSS classes
-        hmdBtn.className = `babylonVRicon${activeButton === this ? " vrdisplaypresenting" : ""}`;
+    const xrBtn = new WebXREnterExitUIButton(btnElement, sessionMode, referenceSpaceType);
+    xrBtn.update = function(activeButton: WebXREnterExitUIButton | null) {
+        if (activeButton === null) {
+            // not active, show button and remove presenting style (if present)
+            btnElement.style.display = "";
+            btnElement.classList.remove("webxr-presenting");
+        } else if (activeButton === xrBtn) {
+            // this button is active, change it to presenting
+            btnElement.style.display = "";
+            btnElement.classList.add("webxr-presenting");
+        } else {
+            // some button is active, but not this one... hide this button
+            btnElement.style.display = "none";
+        }
     };
 
-    return ret;
+    return xrBtn;
 }
 
 function addCss() {
@@ -341,6 +350,14 @@ function addCss() {
     .webxr-available {
         background: black;
         box-shadow:0 0 0 0px white, 0 0 0 2px black;
+    }
+
+    .webxr-presenting {
+        background: red;
+    }
+
+    .webxr-presenting::before {
+        content: "EXIT ";
     }
 
     .webxr-not-available {
