@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/html'
+import '@storybook/addon-console';
 
 const preview: Preview = {
   parameters: {
