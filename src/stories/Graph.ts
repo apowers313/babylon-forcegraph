@@ -68,6 +68,7 @@ export const createGraph = ({
     g.init()
         .then(() => {
             console.log("Success");
+            g.engine.resize(true);
         })
         .catch((e) => {
             console.log("ERROR:", e);
