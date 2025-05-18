@@ -40,6 +40,10 @@
 
         const response = await fetch("./data/miserables.json");
         const data = await response.json();
+
+        // graph calls this when it needs all the edges associated with a node
+        // the node is passed in as 'n'; return data is a Set of all the
+        // edges connected to 'n'
         function fetchEdges(n, _g) {
             // find all edges with source and target links that match our
             // specified node
@@ -54,6 +58,9 @@
             return new Set(edgeArray);
         }
 
+        // graph calls this when it needs data for specific nodes
+        // needed data is in nodeIdSet; return data is a Set of all the
+        // requested Nodes
         function fetchNodes(nodeIdSet, _g) {
             const nodeArray = data.nodes.filter((n) => nodeIdSet.has(n.id));
             return new Set(nodeArray);
